@@ -149,8 +149,9 @@ class TestTwilioMessageHandling:
             to_number="+1",
         )
 
-        # Mock client as connected
+        # Mock client as connected (is_connected checks _connected AND _ws)
         session.client._connected = True
+        session.client._ws = MagicMock()  # Mock WebSocket to pass is_connected check
         session.client.send_audio = AsyncMock()
 
         audio_data = b"test audio"

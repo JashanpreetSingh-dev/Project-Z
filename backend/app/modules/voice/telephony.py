@@ -16,6 +16,7 @@ from fastapi import APIRouter, Request, Response, WebSocket, WebSocketDisconnect
 from app.config import get_settings
 from app.modules.calls.models import CallIntent, CallLog, CallOutcome
 from app.modules.shops.models import ShopConfig
+from app.modules.shops.service import get_shop_config_by_phone
 from app.modules.voice.prompts import get_system_prompt
 from app.modules.voice.realtime import RealtimeEventType
 from app.modules.voice.realtime_session import RealtimeSession, SessionState
@@ -133,6 +134,10 @@ class TwilioRealtimeSession(RealtimeSession):
             self._event_task = asyncio.create_task(self._event_loop())
 
             await self._set_state(SessionState.LISTENING)
+
+            # Trigger AI to greet the caller immediately
+            await self.client.send_text_message("The caller just connected. Greet them warmly.")
+            logger.info("Greeting triggered for call %s", self.call_sid)
 
         except Exception as e:
             logger.exception("Failed to start Twilio session: %s", e)
@@ -274,8 +279,8 @@ class TwilioRealtimeSession(RealtimeSession):
         from twilio.rest import Client  # type: ignore[import-untyped]  # noqa: I001
 
         transfer_number = (
-            getattr(self.shop_config, "transfer_phone", None) or _settings.default_transfer_number
-        )
+            self.shop_config.settings.transfer_number if self.shop_config else None
+        ) or _settings.default_transfer_number
 
         if not transfer_number:
             logger.error("No transfer number configured for call %s", self.call_sid)
@@ -358,13 +363,18 @@ async def handle_incoming_call(request: Request) -> Response:
     base_url = _settings.twilio_webhook_base_url
     if not base_url:
         host = request.headers.get("host", "localhost:8000")
-        protocol = "wss" if request.url.scheme == "https" else "ws"
-        base_url = f"{protocol}://{host}"
+        base_url = f"https://{host}"
+
+    # Convert https:// to wss:// for WebSocket
+    ws_base = base_url.replace("https://", "wss://").replace("http://", "ws://")
+    ws_url = f"{ws_base}/api/twilio/media-stream"
+
+    logger.info("Media stream URL: %s", ws_url)
 
     # Generate TwiML
     response = VoiceResponse()
     connect = Connect()
-    stream = Stream(url=f"{base_url}/api/twilio/media-stream")
+    stream = Stream(url=ws_url)
     stream.parameter(name="callSid", value=str(call_sid))
     stream.parameter(name="fromNumber", value=str(from_number))
     stream.parameter(name="toNumber", value=str(to_number))
@@ -392,12 +402,21 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
             # Create session on stream start
             if message.get("event") == "start" and session is None:
                 params = message.get("start", {}).get("customParameters", {})
+                to_number = params.get("toNumber", "unknown")
+
+                # Look up shop by Twilio phone number
+                shop_config = await get_shop_config_by_phone(to_number)
+                if shop_config:
+                    logger.info("Matched shop: %s", shop_config.name)
+                else:
+                    logger.warning("No shop found for %s, using defaults", to_number)
+
                 session = TwilioRealtimeSession(
                     twilio_ws=websocket,
                     call_sid=params.get("callSid", "unknown"),
                     from_number=params.get("fromNumber", "unknown"),
-                    to_number=params.get("toNumber", "unknown"),
-                    shop_config=None,  # TODO: Look up by to_number
+                    to_number=to_number,
+                    shop_config=shop_config,
                 )
 
             # Forward all messages to session

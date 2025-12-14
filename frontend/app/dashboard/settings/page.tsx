@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { Check, Loader2, Settings, MessageSquare, Phone, Timer } from "lucide-react";
 import { shopAPI, type ShopConfig, type ShopConfigUpdate } from "@/lib/api";
+import { formatPhoneInput, formatPhoneDisplay } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,9 +57,9 @@ export default function SettingsPage() {
         setShop(shopData);
         setFormData({
           name: shopData.name,
-          phone: shopData.phone,
+          phone: formatPhoneDisplay(shopData.phone),
           greeting_message: shopData.settings.greeting_message,
-          transfer_number: shopData.settings.transfer_number || "",
+          transfer_number: formatPhoneDisplay(shopData.settings.transfer_number || ""),
           ai_enabled: shopData.settings.ai_enabled,
           max_call_duration_seconds: shopData.settings.max_call_duration_seconds,
         });
@@ -172,17 +173,21 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Business Phone</Label>
+              <Label htmlFor="phone">Business Phone (Twilio Number)</Label>
               <Input
                 type="tel"
                 id="phone"
                 required
+                placeholder="(555) 123-4567"
                 value={formData.phone}
                 onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
+                  setFormData({ ...formData, phone: formatPhoneInput(e.target.value) })
                 }
                 className="bg-background"
               />
+              <p className="text-xs text-muted-foreground">
+                Your Twilio phone number for receiving calls
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -268,10 +273,10 @@ export default function SettingsPage() {
               <Input
                 type="tel"
                 id="transfer"
-                placeholder="+1 (555) 123-4567"
+                placeholder="(555) 123-4567"
                 value={formData.transfer_number}
                 onChange={(e) =>
-                  setFormData({ ...formData, transfer_number: e.target.value })
+                  setFormData({ ...formData, transfer_number: formatPhoneInput(e.target.value) })
                 }
                 className="bg-background"
               />

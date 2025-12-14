@@ -37,9 +37,54 @@ async def get_shop_config_by_owner(owner_id: str) -> ShopConfig | None:
     return await ShopConfig.find_one(ShopConfig.owner_id == owner_id)
 
 
+def normalize_phone(phone: str) -> str:
+    """Normalize phone number to E.164 format (+1XXXXXXXXXX for US/CA).
+
+    Handles various input formats:
+    - +15551234567 -> +15551234567
+    - 15551234567 -> +15551234567
+    - 5551234567 -> +15551234567 (assumes US/CA)
+    - (555) 123-4567 -> +15551234567
+    """
+    # Remove all non-digit characters except leading +
+    digits = "".join(c for c in phone if c.isdigit())
+
+    # If 10 digits, assume US/CA and add +1
+    if len(digits) == 10:
+        return f"+1{digits}"
+    # If 11 digits starting with 1, add +
+    if len(digits) == 11 and digits.startswith("1"):
+        return f"+{digits}"
+    # Already has country code
+    if phone.startswith("+"):
+        return f"+{digits}"
+    # Fallback: return with +
+    return f"+{digits}" if digits else phone
+
+
 async def get_shop_config_by_phone(phone: str) -> ShopConfig | None:
-    """Get a shop configuration by phone number (for call routing)."""
-    return await ShopConfig.find_one(ShopConfig.phone == phone)
+    """Get a shop configuration by phone number (for call routing).
+
+    Tries multiple phone formats to handle different storage conventions.
+    """
+    normalized = normalize_phone(phone)
+
+    # Try exact match first (E.164 format)
+    shop = await ShopConfig.find_one(ShopConfig.phone == normalized)
+    if shop:
+        return shop
+
+    # Try without country code (10 digits)
+    digits_only = "".join(c for c in phone if c.isdigit())
+    if len(digits_only) >= 10:
+        last_10 = digits_only[-10:]
+        shop = await ShopConfig.find_one(ShopConfig.phone == last_10)
+        if shop:
+            return shop
+
+    # Try with just the digits
+    shop = await ShopConfig.find_one(ShopConfig.phone == digits_only)
+    return shop
 
 
 async def create_shop_config(data: ShopConfigCreate, owner_id: str) -> ShopConfig:
@@ -55,7 +100,7 @@ async def create_shop_config(data: ShopConfigCreate, owner_id: str) -> ShopConfi
     config = ShopConfig(
         owner_id=owner_id,
         name=data.name,
-        phone=data.phone,
+        phone=normalize_phone(data.phone),  # Normalize to E.164
         adapter_type=data.adapter_type,
         adapter_credentials=data.adapter_credentials or AdapterCredentials(),
         settings=data.settings or ShopSettings(),
@@ -70,6 +115,10 @@ async def update_shop_config(shop_id: str, data: ShopConfigUpdate) -> ShopConfig
 
     update_data = data.model_dump(exclude_unset=True)
     update_data["updated_at"] = utc_now()
+
+    # Normalize phone if being updated
+    if "phone" in update_data and update_data["phone"]:
+        update_data["phone"] = normalize_phone(update_data["phone"])
 
     await config.update({"$set": update_data})
     await config.sync()
@@ -96,6 +145,10 @@ async def update_shop_config_by_owner(owner_id: str, data: ShopConfigUpdate) -> 
 
     update_data = data.model_dump(exclude_unset=True)
     update_data["updated_at"] = utc_now()
+
+    # Normalize phone if being updated
+    if "phone" in update_data and update_data["phone"]:
+        update_data["phone"] = normalize_phone(update_data["phone"])
 
     await config.update({"$set": update_data})
     await config.sync()

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2, Phone, PhoneIncoming } from "lucide-react";
 import { callsAPI, type CallLog } from "@/lib/api";
-import { formatDateTime, formatDuration } from "@/lib/utils";
+import { formatDateTime, formatDuration, formatPhoneDisplay } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -129,8 +129,8 @@ export default function CallsPage() {
                     <TableCell className="pl-6 font-medium">
                       {formatDateTime(call.timestamp)}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {call.caller_number || "Unknown"}
+                    <TableCell className="text-muted-foreground font-mono text-sm">
+                      {call.caller_number ? formatPhoneDisplay(call.caller_number) : "Unknown"}
                     </TableCell>
                     <TableCell>
                       <IntentBadge intent={call.intent} />
