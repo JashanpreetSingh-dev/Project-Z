@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [shop, setShop] = useState<ShopConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -31,10 +31,21 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
+    // Wait for Clerk to fully load before making API calls
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      setIsLoading(false);
+      return;
+    }
+
     async function loadShop() {
       try {
         const token = await getToken();
-        if (!token) return;
+        if (!token) {
+          setError("Unable to get authentication token");
+          return;
+        }
 
         const shopData = await shopAPI.getMyShop(token);
         if (!shopData) {
@@ -59,7 +70,7 @@ export default function SettingsPage() {
     }
 
     loadShop();
-  }, [getToken, router]);
+  }, [getToken, router, isLoaded, isSignedIn]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

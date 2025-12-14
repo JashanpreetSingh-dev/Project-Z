@@ -17,16 +17,27 @@ import {
 } from "@/components/ui/table";
 
 export default function CallsPage() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [calls, setCalls] = useState<CallLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait for Clerk to fully load before making API calls
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      setIsLoading(false);
+      return;
+    }
+
     async function loadCalls() {
       try {
         const token = await getToken();
-        if (!token) return;
+        if (!token) {
+          setError("Unable to get authentication token");
+          return;
+        }
 
         const callsData = await callsAPI.getMyCalls(token);
         setCalls(callsData);
@@ -38,7 +49,7 @@ export default function CallsPage() {
     }
 
     loadCalls();
-  }, [getToken]);
+  }, [getToken, isLoaded, isSignedIn]);
 
   if (isLoading) {
     return (

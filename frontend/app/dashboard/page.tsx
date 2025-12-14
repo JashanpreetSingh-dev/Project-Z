@@ -10,19 +10,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { getToken, isLoaded } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [shop, setShop] = useState<ShopConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadShop() {
-      // Wait for Clerk to fully load before making API calls
-      if (!isLoaded) return;
+    // Wait for Clerk to fully load before making API calls
+    if (!isLoaded) return;
 
+    // Not signed in - middleware should handle redirect, but be safe
+    if (!isSignedIn) {
+      setIsLoading(false);
+      return;
+    }
+
+    async function loadShop() {
       try {
         const token = await getToken();
-        if (!token) return;
+        if (!token) {
+          setError("Unable to get authentication token");
+          return;
+        }
 
         const shopData = await shopAPI.getMyShop(token);
 
@@ -40,7 +49,7 @@ export default function DashboardPage() {
     }
 
     loadShop();
-  }, [getToken, router, isLoaded]);
+  }, [getToken, router, isLoaded, isSignedIn]);
 
   if (isLoading) {
     return (
