@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { Activity, ArrowRight, Phone, Settings, Zap, Link2 } from "lucide-react";
 import { shopAPI, type ShopConfig } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function DashboardPage() {
         if (!token) return;
 
         const shopData = await shopAPI.getMyShop(token);
-        
+
         if (!shopData) {
           router.push("/onboarding");
           return;
@@ -41,15 +42,19 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="flex items-center gap-3 text-muted-foreground">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span>Loading your dashboard...</span>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg bg-destructive/10 p-4 text-destructive">
-        Error: {error}
+      <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-destructive">
+        <p className="font-medium">Error loading dashboard</p>
+        <p className="mt-1 text-sm opacity-80">{error}</p>
       </div>
     );
   }
@@ -59,48 +64,81 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Welcome back, {shop.name}</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Welcome back, <span className="gradient-text">{shop.name}</span>
+        </h1>
+        <p className="mt-1 text-muted-foreground">
           Here&apos;s what&apos;s happening with your AI receptionist
         </p>
       </div>
 
       {/* Status Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-3 stagger-children">
+        {/* AI Status Card */}
+        <Card className="hover-lift">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">AI Status</CardTitle>
-            <span className="text-2xl">
-              {shop.settings.ai_enabled ? "🟢" : "🔴"}
-            </span>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              AI Status
+            </CardTitle>
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Activity className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">
-              {shop.settings.ai_enabled ? "Active" : "Paused"}
+            <div className="flex items-center gap-3">
+              <span
+                className={`status-dot ${
+                  shop.settings.ai_enabled ? "status-dot-active" : "status-dot-inactive"
+                }`}
+              />
+              <span className="text-2xl font-bold">
+                {shop.settings.ai_enabled ? "Active" : "Paused"}
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {shop.settings.ai_enabled
+                ? "Answering calls 24/7"
+                : "Calls forwarding to transfer number"}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Phone Number Card */}
+        <Card className="hover-lift">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Phone Number</CardTitle>
-            <span className="text-2xl">📞</span>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Phone Number
+            </CardTitle>
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Phone className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{shop.phone}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              AI-powered line
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Adapter Card */}
+        <Card className="hover-lift">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Adapter</CardTitle>
-            <span className="text-2xl">🔗</span>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Data Source
+            </CardTitle>
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Link2 className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{shop.adapter_type.toUpperCase()}</p>
+            <p className="text-2xl font-bold capitalize">{shop.adapter_type}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {shop.adapter_type === "mock" ? "Demo data" : "Live sync"}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -108,13 +146,26 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5 text-primary" />
+            Quick Actions
+          </CardTitle>
         </CardHeader>
-        <CardContent className="flex gap-4">
-          <Button variant="outline" onClick={() => router.push("/dashboard/settings")}>
+        <CardContent className="flex flex-wrap gap-4">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => router.push("/dashboard/settings")}
+          >
+            <Settings className="h-4 w-4" />
             Configure Settings
           </Button>
-          <Button variant="outline" onClick={() => router.push("/dashboard/calls")}>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => router.push("/dashboard/calls")}
+          >
+            <Phone className="h-4 w-4" />
             View Call History
           </Button>
         </CardContent>
@@ -126,11 +177,20 @@ export default function DashboardPage() {
           <CardTitle>AI Greeting Preview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg bg-muted p-4">
-            <p className="italic text-muted-foreground">
+          <div className="relative overflow-hidden rounded-xl bg-muted/50 p-6">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+            <p className="relative text-lg italic text-muted-foreground">
               &quot;{shop.settings.greeting_message.replace("{shop_name}", shop.name)}&quot;
             </p>
           </div>
+          <Button
+            variant="ghost"
+            className="mt-4 gap-2 text-primary"
+            onClick={() => router.push("/dashboard/settings")}
+          >
+            Edit greeting
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </CardContent>
       </Card>
     </div>

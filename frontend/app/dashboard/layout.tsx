@@ -7,21 +7,22 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { userId, getToken } = await auth();
+  const { userId } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
   }
 
-  // Check if user has a shop - if not, redirect to onboarding
-  // Note: In production, we'd check this properly via the API
-  // For now, we'll let the dashboard page handle the redirect
-
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-background">
       <Sidebar />
       <main className="flex-1 overflow-auto">
-        <div className="container mx-auto p-6">{children}</div>
+        {/* Subtle gradient background */}
+        <div className="fixed inset-0 -z-10 ml-64">
+          <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+        </div>
+        <div className="container mx-auto p-8">{children}</div>
       </main>
     </div>
   );
