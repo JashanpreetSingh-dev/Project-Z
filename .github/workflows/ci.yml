@@ -108,5 +108,5 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Use real key if available, otherwise use dummy key for CI builds
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_ci_builds_only' }}
+          # Dummy key for CI builds - real key used in production deployment
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder_for_ci_build
