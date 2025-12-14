@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,10 +26,23 @@ export default function OnboardingPage() {
     setIsLoading(true);
     setError(null);
 
+    // Wait for Clerk to be ready
+    if (!isLoaded) {
+      setError("Authentication is loading, please try again");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isSignedIn) {
+      router.push("/sign-in?redirect_url=/onboarding");
+      return;
+    }
+
     try {
       const token = await getToken();
       if (!token) {
-        throw new Error("Not authenticated");
+        router.push("/sign-in?redirect_url=/onboarding");
+        return;
       }
 
       await shopAPI.createMyShop(formData, token);

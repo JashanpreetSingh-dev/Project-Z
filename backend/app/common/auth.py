@@ -1,6 +1,7 @@
 """Clerk JWT authentication middleware for FastAPI."""
 
 import logging
+import time
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -17,6 +18,9 @@ logger = logging.getLogger(__name__)
 # HTTP Bearer token security scheme
 security = HTTPBearer(auto_error=False)
 
+# JWKS cache TTL in seconds (5 minutes)
+_JWKS_CACHE_TTL = 300
+
 
 @dataclass
 class AuthenticatedUser:
@@ -30,18 +34,11 @@ class AuthenticatedUser:
 
 # Cache for Clerk JWKS (JSON Web Key Set)
 _jwks_cache: dict | None = None
+_jwks_cache_time: float = 0
 
 
-async def _get_clerk_jwks() -> dict:
-    """Fetch Clerk's JWKS for JWT verification.
-
-    Returns cached version if available.
-    """
-    global _jwks_cache
-
-    if _jwks_cache is not None:
-        return _jwks_cache
-
+async def _fetch_clerk_jwks() -> dict:
+    """Fetch Clerk's JWKS from the API."""
     settings = get_settings()
     if not settings.clerk_secret_key:
         raise HTTPException(
@@ -49,35 +46,14 @@ async def _get_clerk_jwks() -> dict:
             detail="Clerk secret key not configured",
         )
 
-    # Extract Clerk frontend API from the secret key
-    # Format: sk_test_xxxx or sk_live_xxxx
-    # We need to get the JWKS from Clerk's API
     try:
         async with httpx.AsyncClient() as client:
-            # Clerk JWKS endpoint - uses the publishable key domain
-            # The publishable key is like pk_test_xxxx or pk_live_xxxx
-            # We'll construct the JWKS URL from the Clerk instance
-            pk = settings.clerk_publishable_key
-            if not pk:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Clerk publishable key not configured",
-                )
-
-            # Extract the Clerk frontend API URL from publishable key
-            # For development, we'll use a simpler approach
-            # Clerk's JWKS is at: https://<clerk-frontend-api>/.well-known/jwks.json
-            # The frontend API can be derived from the dashboard or we use env var
-
-            # Alternative: Use Clerk's Backend API to verify
-            # For now, we'll verify using the secret key directly
             response = await client.get(
                 "https://api.clerk.com/v1/jwks",
                 headers={"Authorization": f"Bearer {settings.clerk_secret_key}"},
             )
             response.raise_for_status()
-            _jwks_cache = response.json()
-            return _jwks_cache
+            return response.json()
     except httpx.HTTPError as e:
         logger.error("Failed to fetch Clerk JWKS: %s", e)
         raise HTTPException(
@@ -86,24 +62,68 @@ async def _get_clerk_jwks() -> dict:
         ) from e
 
 
-def _get_signing_key(jwks: dict, token: str) -> RSAPublicKey:
-    """Get the signing key from JWKS that matches the token's kid."""
+async def _get_clerk_jwks(force_refresh: bool = False) -> dict:
+    """Fetch Clerk's JWKS for JWT verification.
+
+    Args:
+        force_refresh: If True, bypass cache and fetch fresh JWKS.
+
+    Returns cached version if available and not expired.
+    """
+    global _jwks_cache, _jwks_cache_time
+
+    now = time.time()
+    cache_expired = (now - _jwks_cache_time) > _JWKS_CACHE_TTL
+
+    if not force_refresh and _jwks_cache is not None and not cache_expired:
+        return _jwks_cache
+
+    _jwks_cache = await _fetch_clerk_jwks()
+    _jwks_cache_time = now
+    return _jwks_cache
+
+
+def _find_signing_key(jwks: dict, kid: str) -> RSAPublicKey | None:
+    """Find the signing key in JWKS that matches the given kid."""
     from jwt.algorithms import RSAAlgorithm
 
+    for key in jwks.get("keys", []):
+        if key.get("kid") == kid:
+            rsa_key = RSAAlgorithm.from_jwk(key)
+            if isinstance(rsa_key, RSAPublicKey):
+                return rsa_key
+    return None
+
+
+async def _get_signing_key(token: str) -> RSAPublicKey:
+    """Get the signing key from JWKS that matches the token's kid.
+
+    If the key is not found in cache, refreshes the JWKS and retries.
+    """
     try:
         unverified_header = jwt.get_unverified_header(token)
         kid = unverified_header.get("kid")
 
-        for key in jwks.get("keys", []):
-            if key.get("kid") == kid:
-                # Convert JWK to RSA public key
-                rsa_key = RSAAlgorithm.from_jwk(key)
-                if not isinstance(rsa_key, RSAPublicKey):
-                    raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Invalid key type",
-                    )
-                return rsa_key
+        if not kid:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token missing key ID",
+            )
+
+        # Try with cached JWKS first
+        jwks = await _get_clerk_jwks(force_refresh=False)
+        signing_key = _find_signing_key(jwks, kid)
+
+        if signing_key is not None:
+            return signing_key
+
+        # Key not found - refresh JWKS and retry (handles key rotation)
+        logger.info("Signing key not found in cache, refreshing JWKS")
+        jwks = await _get_clerk_jwks(force_refresh=True)
+        signing_key = _find_signing_key(jwks, kid)
+
+        if signing_key is not None:
+            return signing_key
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,16 +160,17 @@ async def get_current_user(
     token = credentials.credentials
 
     try:
-        # Fetch JWKS for verification
-        jwks = await _get_clerk_jwks()
-        signing_key = _get_signing_key(jwks, token)
+        # Get signing key (handles JWKS caching and refresh)
+        signing_key = await _get_signing_key(token)
 
         # Verify and decode the JWT
+        # Add leeway to handle clock skew between servers
         payload = jwt.decode(
             token,
             signing_key,
             algorithms=["RS256"],
             options={"verify_aud": False},  # Clerk tokens may not have aud
+            leeway=60,  # Allow 60 seconds of clock skew
         )
 
         # Extract user info from Clerk JWT claims

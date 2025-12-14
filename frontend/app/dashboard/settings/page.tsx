@@ -78,9 +78,24 @@ export default function SettingsPage() {
     setError(null);
     setSuccess(false);
 
+    // Ensure Clerk is ready before making API call
+    if (!isLoaded) {
+      setError("Authentication is loading, please try again");
+      setIsSaving(false);
+      return;
+    }
+
+    if (!isSignedIn) {
+      router.push("/sign-in?redirect_url=/dashboard/settings");
+      return;
+    }
+
     try {
       const token = await getToken();
-      if (!token) throw new Error("Not authenticated");
+      if (!token) {
+        router.push("/sign-in?redirect_url=/dashboard/settings");
+        return;
+      }
 
       const update: ShopConfigUpdate = {
         name: formData.name,
