@@ -21,7 +21,11 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = ""
 
-    # Deepgram (Phase 3)
+    # OpenAI Realtime API (Phase 3)
+    realtime_model: str = "gpt-4o-realtime-preview"
+    realtime_voice: str = "alloy"  # Options: alloy, echo, fable, onyx, nova, shimmer
+
+    # Deepgram (fallback/alternative)
     deepgram_api_key: str = ""
 
     # Twilio (Phase 4)

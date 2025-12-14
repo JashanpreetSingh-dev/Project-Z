@@ -3,9 +3,12 @@
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.common.health import router as health_router
 from app.config import get_settings
@@ -61,6 +64,16 @@ def create_app() -> FastAPI:
     app.include_router(shops_router, prefix="/api/shops", tags=["Shop Config"])
     app.include_router(calls_router, prefix="/api/calls", tags=["Call Logs"])
     app.include_router(voice_router, prefix="/api/voice", tags=["Voice AI"])
+
+    # Static files for voice test page
+    static_dir = Path(__file__).parent.parent / "static"
+    if static_dir.exists():
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+        @app.get("/voice-test", include_in_schema=False)
+        async def voice_test_page() -> FileResponse:
+            """Serve the voice test HTML page."""
+            return FileResponse(static_dir / "voice_test.html")
 
     return app
 

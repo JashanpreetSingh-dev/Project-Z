@@ -157,6 +157,24 @@ class ToolRegistry:
         """
         return TOOL_SCHEMAS
 
+    def get_realtime_tools_schema(self) -> list[dict[str, Any]]:
+        """Get tools schema in OpenAI Realtime API format.
+
+        The Realtime API uses a slightly different format than Chat Completions.
+
+        Returns:
+            List of tool definitions in Realtime API format.
+        """
+        return [
+            {
+                "type": "function",
+                "name": tool["function"]["name"],
+                "description": tool["function"]["description"],
+                "parameters": tool["function"]["parameters"],
+            }
+            for tool in TOOL_SCHEMAS
+        ]
+
     async def execute(self, tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
         """Execute a tool call from the LLM.
 
