@@ -4,95 +4,83 @@
 
 @layer base {
   :root {
-    /* Ocean Gradient Light Theme - Vercel Inspired */
+    /* Slate-Blue Light Theme - Timeless & Trust-focused */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 220 15% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 15% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 15% 10%;
 
-    /* Ocean Blue Primary */
-    --primary: 217 91% 60%;
+    /* Deep Slate-Blue Primary */
+    --primary: 215 25% 27%;
     --primary-foreground: 0 0% 100%;
 
-    /* Violet Accent */
-    --accent-color: 258 90% 66%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 10%;
 
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 222 47% 11%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 45%;
 
-    --muted: 214 32% 91%;
-    --muted-foreground: 215 16% 47%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 15% 10%;
 
-    --accent: 214 32% 91%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84% 60%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    /* Subtle Green Accent */
+    --success: 152 45% 42%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 215 25% 27%;
 
     --radius: 0.625rem;
-
-    /* Gradient Colors - Ocean to Violet */
-    --gradient-start: 217 91% 60%;
-    --gradient-end: 258 90% 66%;
   }
 
   .dark {
-    /* Ocean Gradient Dark Theme - Deep & Professional */
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
+    /* Slate-Blue Dark Theme - Deep & Professional */
+    --background: 220 15% 8%;
+    --foreground: 210 20% 95%;
 
-    --card: 222 47% 6%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 15% 10%;
+    --card-foreground: 210 20% 95%;
 
-    --popover: 222 47% 6%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 15% 10%;
+    --popover-foreground: 210 20% 95%;
 
-    /* Ocean Blue Primary */
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 4%;
+    /* Slate-Blue Primary (lighter for dark mode) */
+    --primary: 215 30% 55%;
+    --primary-foreground: 220 15% 8%;
 
-    /* Violet Accent */
-    --accent-color: 258 90% 66%;
+    --secondary: 220 15% 15%;
+    --secondary-foreground: 210 20% 95%;
 
-    --secondary: 217 33% 12%;
-    --secondary-foreground: 210 40% 98%;
+    --muted: 220 15% 15%;
+    --muted-foreground: 220 10% 60%;
 
-    --muted: 217 33% 12%;
-    --muted-foreground: 215 20% 65%;
+    --accent: 220 15% 15%;
+    --accent-foreground: 210 20% 95%;
 
-    --accent: 217 33% 12%;
-    --accent-foreground: 210 40% 98%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 210 20% 95%;
 
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 210 40% 98%;
-
-    --success: 142 71% 45%;
-    --success-foreground: 210 40% 98%;
+    /* Subtle Green Accent */
+    --success: 152 45% 42%;
+    --success-foreground: 210 20% 95%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 210 40% 98%;
+    --warning-foreground: 210 20% 95%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
-
-    /* Gradient Colors - Ocean to Violet */
-    --gradient-start: 217 91% 60%;
-    --gradient-end: 258 90% 66%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 215 30% 55%;
   }
 }
 
@@ -112,14 +100,14 @@
 }
 
 @layer utilities {
-  /* Gradient Text */
+  /* Primary Text - replaces gradient-text for cleaner look */
   .gradient-text {
-    @apply bg-gradient-to-r from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))] bg-clip-text text-transparent;
+    @apply text-primary;
   }
 
-  /* Gradient Background */
+  /* Primary Background - replaces gradient-bg for cleaner look */
   .gradient-bg {
-    @apply bg-gradient-to-r from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))];
+    @apply bg-primary;
   }
 
   /* Subtle gradient background */
@@ -136,33 +124,18 @@
     @apply bg-card/50 backdrop-blur-xl border border-border/50;
   }
 
-  /* Glow Effect */
+  /* Glow Effect - subtle for slate theme */
   .glow {
-    box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.3);
   }
 
   .glow-sm {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.2);
   }
 
-  /* Animated Gradient Border */
+  /* Primary Border */
   .gradient-border {
-    @apply relative;
-  }
-
-  .gradient-border::before {
-    content: "";
-    @apply absolute inset-0 rounded-[inherit] p-[1px];
-    background: linear-gradient(
-      135deg,
-      hsl(var(--gradient-start)),
-      hsl(var(--gradient-end))
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
+    @apply relative border border-primary/20;
   }
 
   /* Hover lift effect */
@@ -205,24 +178,23 @@
 @layer components {
   /* Primary CTA - High prominence */
   .btn-primary-glow {
-    @apply gradient-bg text-white font-semibold shadow-lg;
-    @apply hover:shadow-xl hover:scale-[1.02];
+    @apply bg-primary text-primary-foreground font-semibold;
+    @apply hover:bg-primary/90 hover:scale-[1.02];
     @apply active:scale-[0.98];
     @apply transition-all duration-200;
-    box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.4),
-                0 10px 20px -10px hsl(var(--primary) / 0.3);
+    box-shadow: 0 4px 14px -3px hsl(var(--primary) / 0.4);
   }
 
   .btn-primary-glow:hover {
-    box-shadow: 0 0 40px -5px hsl(var(--primary) / 0.5),
-                0 15px 30px -10px hsl(var(--primary) / 0.4);
+    box-shadow: 0 6px 20px -3px hsl(var(--primary) / 0.5);
   }
 
   /* Modern Button Styles */
   .btn-gradient {
-    @apply gradient-bg text-white font-medium shadow-lg;
-    @apply hover:opacity-90 hover:shadow-xl;
+    @apply bg-primary text-primary-foreground font-medium;
+    @apply hover:bg-primary/90;
     @apply transition-all duration-200;
+    box-shadow: 0 4px 14px -3px hsl(var(--primary) / 0.3);
   }
 
   /* Status indicators */
@@ -231,8 +203,8 @@
   }
 
   .status-dot-active {
-    @apply bg-green-500;
-    box-shadow: 0 0 8px hsl(142 71% 45% / 0.6);
+    @apply bg-[hsl(var(--success))];
+    box-shadow: 0 0 8px hsl(var(--success) / 0.6);
   }
 
   .status-dot-inactive {
@@ -320,10 +292,10 @@
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 15px -5px hsl(var(--primary) / 0.2);
   }
   50% {
-    box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
   }
 }
 

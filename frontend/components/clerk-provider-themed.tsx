@@ -4,7 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 
 const clerkAppearance = {
   variables: {
-    colorPrimary: "hsl(262, 83%, 58%)",
+    colorPrimary: "hsl(215, 25%, 27%)",
     borderRadius: "0.75rem",
     fontFamily: "var(--font-inter), system-ui, sans-serif",
   },
@@ -22,7 +22,7 @@ const clerkAppearance = {
     formFieldInput: 
       "bg-background border-input focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200",
     formButtonPrimary:
-      "bg-gradient-to-r from-[hsl(262,83%,58%)] to-[hsl(199,89%,48%)] hover:opacity-90 text-white font-medium shadow-lg shadow-primary/25 transition-all duration-200 normal-case",
+      "bg-primary hover:bg-primary/90 text-white font-medium shadow-md shadow-primary/20 transition-all duration-200 normal-case",
     footerActionLink: "text-primary hover:text-primary/80 font-medium",
     identityPreviewEditButton: "text-primary hover:text-primary/80",
     formFieldAction: "text-primary hover:text-primary/80",

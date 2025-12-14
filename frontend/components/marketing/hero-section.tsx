@@ -33,7 +33,7 @@ export function HeroSection() {
           amplitude={15}
           direction="diagonal"
         >
-          <div className="w-32 h-32 rounded-full bg-[hsl(var(--accent-color))]/10 blur-2xl" />
+          <div className="w-32 h-32 rounded-full bg-primary/8 blur-2xl" />
         </FloatingElement>
 
         <FloatingElement

@@ -19,9 +19,9 @@ const sizeClasses = {
 };
 
 const colorClasses = {
-  primary: "bg-primary/15",
-  accent: "bg-[hsl(var(--accent-color))]/15",
-  mixed: "bg-gradient-to-br from-primary/15 to-[hsl(var(--accent-color))]/15",
+  primary: "bg-primary/10",
+  accent: "bg-primary/8",
+  mixed: "bg-primary/12",
 };
 
 function GradientOrb({
