@@ -1,0 +1,11 @@
+order_number,customer_name,customer_phone,vehicle_make,vehicle_model,vehicle_year,vehicle_color,license_plate,status,services,notes
+WO-1001,John Smith,555-123-4567,Honda,Civic,2020,Blue,ABC123,IN_PROGRESS,"Oil Change, Tire Rotation",Regular maintenance
+WO-1002,Jane Doe,555-234-5678,Toyota,Camry,2019,Silver,XYZ789,READY,"Brake Repair",Front brakes replaced
+WO-1003,Bob Johnson,555-345-6789,Ford,F-150,2021,Black,DEF456,PENDING,"Engine Diagnostic",Check engine light on
+WO-1004,Alice Williams,555-456-7890,Chevrolet,Malibu,2018,White,GHI012,WAITING_PARTS,Transmission Service,Waiting for filter
+WO-1005,Charlie Brown,555-567-8901,Nissan,Altima,2022,Red,JKL345,IN_PROGRESS,"AC Repair, Belt Replacement",AC not cooling
+WO-1006,Diana Martinez,555-678-9012,Hyundai,Elantra,2020,Gray,MNO678,READY,"Oil Change",Ready for pickup
+WO-1007,Edward Lee,555-789-0123,Kia,Sorento,2021,Green,PQR901,PICKED_UP,"Tire Replacement",All 4 tires replaced
+WO-1008,Fiona Garcia,555-890-1234,Mazda,CX-5,2019,Blue,STU234,IN_PROGRESS,"Suspension Repair",Front struts
+WO-1009,George Wilson,555-901-2345,Subaru,Outback,2020,White,VWX567,PENDING,"30K Service",Scheduled maintenance
+WO-1010,Helen Taylor,555-012-3456,Volkswagen,Jetta,2018,Black,YZA890,READY,"Battery Replacement",New battery installed
