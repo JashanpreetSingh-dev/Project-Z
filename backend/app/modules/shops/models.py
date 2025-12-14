@@ -1,14 +1,11 @@
 """Shop model for auto repair businesses."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 from beanie import Document
 from pydantic import BaseModel, Field
 
-
-def utc_now() -> datetime:
-    """Return current UTC time as timezone-aware datetime."""
-    return datetime.now(UTC)
+from app.common.utils import utc_now
 
 
 class BusinessHours(BaseModel):
@@ -37,7 +34,13 @@ class ShopSettings(BaseModel):
     ai_enabled: bool = True
     transfer_number: str | None = None
     allowed_intents: list[str] = Field(
-        default_factory=lambda: ["CHECK_STATUS", "GET_HOURS", "GET_LOCATION", "GET_SERVICES", "TRANSFER_HUMAN"],
+        default_factory=lambda: [
+            "CHECK_STATUS",
+            "GET_HOURS",
+            "GET_LOCATION",
+            "GET_SERVICES",
+            "TRANSFER_HUMAN",
+        ],
         description="Intents the AI is allowed to handle",
     )
     greeting_message: str = "Thank you for calling {shop_name}. How can I help you today?"

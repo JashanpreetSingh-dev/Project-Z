@@ -7,6 +7,8 @@ from typing import Any
 from beanie import Document, Indexed
 from pydantic import Field
 
+from app.common.utils import utc_now
+
 
 class CallIntent(str, Enum):
     """Detected caller intent."""
@@ -33,16 +35,16 @@ class CallLog(Document):
     """Call log document for tracking AI interactions."""
 
     # References
-    shop_id: Indexed(str) = Field(..., description="Reference to shop")  # type: ignore
-    work_order_id: str | None = Field(None, description="Referenced work order if applicable")
+    shop_id: Indexed(str) = Field(..., description="Reference to shop")  # type: ignore[valid-type]
+    work_order_id: str | None = Field(default=None, description="Referenced work order if applicable")
 
     # Call metadata
-    call_sid: str | None = Field(None, description="Telephony provider call ID")
-    caller_number: str | None = Field(None, description="Caller phone number (if available)")
+    call_sid: str | None = Field(default=None, description="Telephony provider call ID")
+    caller_number: str | None = Field(default=None, description="Caller phone number (if available)")
 
     # Timing
-    timestamp: Indexed(datetime) = Field(default_factory=datetime.utcnow)  # type: ignore
-    duration_seconds: int | None = Field(None, description="Call duration in seconds")
+    timestamp: Indexed(datetime) = Field(default_factory=utc_now)  # type: ignore[valid-type]
+    duration_seconds: int | None = Field(default=None, description="Call duration in seconds")
 
     # Intent & AI
     intent: CallIntent = Field(default=CallIntent.UNKNOWN)
@@ -51,21 +53,21 @@ class CallLog(Document):
 
     # Extracted data (flexible schema)
     slots: dict[str, Any] = Field(
-        default={},
+        default_factory=dict,
         description="Extracted slot values (customer_name, vehicle, etc.)",
     )
 
     # Tool execution results
-    tool_called: str | None = Field(None, description="Name of tool executed")
+    tool_called: str | None = Field(default=None, description="Name of tool executed")
     tool_results: dict[str, Any] = Field(
-        default={},
+        default_factory=dict,
         description="Results from tool execution",
     )
 
     # Additional context
     fallback_used: bool = Field(default=False, description="Whether fallback logic was triggered")
-    transfer_reason: str | None = Field(None, description="Reason for transfer if applicable")
-    metadata: dict[str, Any] = Field(default={}, description="Additional metadata")
+    transfer_reason: str | None = Field(default=None, description="Reason for transfer if applicable")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     class Settings:
         name = "call_logs"

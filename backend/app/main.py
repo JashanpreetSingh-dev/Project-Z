@@ -6,9 +6,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.common.health import router as health_router
 from app.config import get_settings
 from app.database import close_db, init_db
-from app.routers import health, shops, work_orders
+from app.modules.calls.router import router as calls_router
+from app.modules.shops.router import router as shops_router
+from app.modules.work_orders.router import router as work_orders_router
 
 
 @asynccontextmanager
@@ -43,9 +46,10 @@ def create_app() -> FastAPI:
     )
 
     # Include routers
-    app.include_router(health.router, tags=["Health"])
-    app.include_router(shops.router, prefix="/api/shops", tags=["Shops"])
-    app.include_router(work_orders.router, prefix="/api/work-orders", tags=["Work Orders"])
+    app.include_router(health_router, tags=["Health"])
+    app.include_router(shops_router, prefix="/api/shops", tags=["Shops"])
+    app.include_router(work_orders_router, prefix="/api/work-orders", tags=["Work Orders"])
+    app.include_router(calls_router, prefix="/api/calls", tags=["Calls"])
 
     return app
 

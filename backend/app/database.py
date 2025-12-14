@@ -4,9 +4,9 @@ from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import get_settings
-from app.models.call_log import CallLog
-from app.models.shop import Shop
-from app.models.work_order import WorkOrder
+from app.modules.calls.models import CallLog
+from app.modules.shops.models import Shop
+from app.modules.work_orders.models import WorkOrder
 
 
 async def init_db() -> None:

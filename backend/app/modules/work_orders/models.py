@@ -1,15 +1,12 @@
 """Work order model for vehicle service tracking."""
 
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 
 from beanie import Document, Indexed
 from pydantic import BaseModel, Field
 
-
-def utc_now() -> datetime:
-    """Return current UTC time as timezone-aware datetime."""
-    return datetime.now(UTC)
+from app.common.utils import utc_now
 
 
 class WorkOrderStatus(str, Enum):
