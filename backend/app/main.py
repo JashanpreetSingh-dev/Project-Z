@@ -1,14 +1,14 @@
 """FastAPI application entry point."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.database import init_db, close_db
-from app.routers import shops, work_orders, health
+from app.database import close_db, init_db
+from app.routers import health, shops, work_orders
 
 
 @asynccontextmanager

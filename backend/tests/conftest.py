@@ -1,15 +1,15 @@
 """Pytest configuration and fixtures."""
 
 import asyncio
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
 from beanie import init_beanie
+from httpx import ASGITransport, AsyncClient
 from motor.motor_asyncio import AsyncIOMotorClient
-from httpx import AsyncClient, ASGITransport
 
 from app.main import app
-from app.models import Shop, WorkOrder, CallLog
+from app.models import CallLog, Shop, WorkOrder
 
 
 @pytest.fixture(scope="session")

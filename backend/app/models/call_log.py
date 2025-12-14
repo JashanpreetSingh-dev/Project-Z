@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from beanie import Document, Indexed
 from pydantic import Field
@@ -34,15 +34,15 @@ class CallLog(Document):
 
     # References
     shop_id: Indexed(str) = Field(..., description="Reference to shop")  # type: ignore
-    work_order_id: Optional[str] = Field(None, description="Referenced work order if applicable")
+    work_order_id: str | None = Field(None, description="Referenced work order if applicable")
 
     # Call metadata
-    call_sid: Optional[str] = Field(None, description="Telephony provider call ID")
-    caller_number: Optional[str] = Field(None, description="Caller phone number (if available)")
+    call_sid: str | None = Field(None, description="Telephony provider call ID")
+    caller_number: str | None = Field(None, description="Caller phone number (if available)")
 
     # Timing
     timestamp: Indexed(datetime) = Field(default_factory=datetime.utcnow)  # type: ignore
-    duration_seconds: Optional[int] = Field(None, description="Call duration in seconds")
+    duration_seconds: int | None = Field(None, description="Call duration in seconds")
 
     # Intent & AI
     intent: CallIntent = Field(default=CallIntent.UNKNOWN)
@@ -56,7 +56,7 @@ class CallLog(Document):
     )
 
     # Tool execution results
-    tool_called: Optional[str] = Field(None, description="Name of tool executed")
+    tool_called: str | None = Field(None, description="Name of tool executed")
     tool_results: dict[str, Any] = Field(
         default={},
         description="Results from tool execution",
@@ -64,7 +64,7 @@ class CallLog(Document):
 
     # Additional context
     fallback_used: bool = Field(default=False, description="Whether fallback logic was triggered")
-    transfer_reason: Optional[str] = Field(None, description="Reason for transfer if applicable")
+    transfer_reason: str | None = Field(None, description="Reason for transfer if applicable")
     metadata: dict[str, Any] = Field(default={}, description="Additional metadata")
 
     class Settings:

@@ -1,7 +1,6 @@
 """Shop model for auto repair businesses."""
 
 from datetime import datetime
-from typing import Optional
 
 from beanie import Document
 from pydantic import BaseModel, Field
@@ -18,20 +17,20 @@ class BusinessHours(BaseModel):
 class WeeklyHours(BaseModel):
     """Weekly business hours schedule."""
 
-    monday: Optional[BusinessHours] = None
-    tuesday: Optional[BusinessHours] = None
-    wednesday: Optional[BusinessHours] = None
-    thursday: Optional[BusinessHours] = None
-    friday: Optional[BusinessHours] = None
-    saturday: Optional[BusinessHours] = None
-    sunday: Optional[BusinessHours] = None
+    monday: BusinessHours | None = None
+    tuesday: BusinessHours | None = None
+    wednesday: BusinessHours | None = None
+    thursday: BusinessHours | None = None
+    friday: BusinessHours | None = None
+    saturday: BusinessHours | None = None
+    sunday: BusinessHours | None = None
 
 
 class ShopSettings(BaseModel):
     """AI and call handling settings for the shop."""
 
     ai_enabled: bool = Field(default=True, description="Whether AI receptionist is active")
-    transfer_number: Optional[str] = Field(None, description="Number to transfer calls to")
+    transfer_number: str | None = Field(None, description="Number to transfer calls to")
     allowed_intents: list[str] = Field(
         default=["CHECK_STATUS", "GET_HOURS", "GET_LOCATION", "GET_SERVICES", "TRANSFER_HUMAN"],
         description="Intents the AI is allowed to handle",
@@ -52,7 +51,7 @@ class Shop(Document):
     state: str = Field(..., description="State")
     zip_code: str = Field(..., description="ZIP code")
 
-    hours: Optional[WeeklyHours] = Field(default=None, description="Business hours")
+    hours: WeeklyHours | None = Field(default=None, description="Business hours")
     services: list[str] = Field(default=[], description="Services offered")
     settings: ShopSettings = Field(default_factory=ShopSettings)
 

@@ -3,13 +3,12 @@
 import csv
 import io
 from datetime import datetime
-from typing import Optional
 
 from beanie import PydanticObjectId
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, Field
 
-from app.models.work_order import WorkOrder, WorkOrderStatus, Vehicle, ServiceItem
+from app.models.work_order import ServiceItem, Vehicle, WorkOrder, WorkOrderStatus
 
 router = APIRouter()
 
@@ -24,10 +23,10 @@ class VehicleCreate(BaseModel):
 
     make: str
     model: str
-    year: Optional[int] = None
-    color: Optional[str] = None
-    license_plate: Optional[str] = None
-    vin: Optional[str] = None
+    year: int | None = None
+    color: str | None = None
+    license_plate: str | None = None
+    vin: str | None = None
 
 
 class WorkOrderCreate(BaseModel):
@@ -36,26 +35,26 @@ class WorkOrderCreate(BaseModel):
     order_number: str = Field(..., min_length=1)
     shop_id: str
     customer_name: str = Field(..., min_length=1)
-    customer_phone: Optional[str] = None
-    customer_email: Optional[str] = None
+    customer_phone: str | None = None
+    customer_email: str | None = None
     vehicle: VehicleCreate
     services: list[ServiceItem] = []
     status: WorkOrderStatus = WorkOrderStatus.PENDING
-    notes: Optional[str] = None
-    estimated_completion: Optional[datetime] = None
+    notes: str | None = None
+    estimated_completion: datetime | None = None
 
 
 class WorkOrderUpdate(BaseModel):
     """Schema for updating a work order."""
 
-    customer_name: Optional[str] = None
-    customer_phone: Optional[str] = None
-    customer_email: Optional[str] = None
-    vehicle: Optional[VehicleCreate] = None
-    services: Optional[list[ServiceItem]] = None
-    status: Optional[WorkOrderStatus] = None
-    notes: Optional[str] = None
-    estimated_completion: Optional[datetime] = None
+    customer_name: str | None = None
+    customer_phone: str | None = None
+    customer_email: str | None = None
+    vehicle: VehicleCreate | None = None
+    services: list[ServiceItem] | None = None
+    status: WorkOrderStatus | None = None
+    notes: str | None = None
+    estimated_completion: datetime | None = None
 
 
 class WorkOrderResponse(BaseModel):
@@ -65,16 +64,16 @@ class WorkOrderResponse(BaseModel):
     order_number: str
     shop_id: str
     customer_name: str
-    customer_phone: Optional[str]
-    customer_email: Optional[str]
+    customer_phone: str | None
+    customer_email: str | None
     vehicle: Vehicle
     services: list[ServiceItem]
     status: WorkOrderStatus
-    notes: Optional[str]
+    notes: str | None
     created_at: datetime
     updated_at: datetime
-    estimated_completion: Optional[datetime]
-    completed_at: Optional[datetime]
+    estimated_completion: datetime | None
+    completed_at: datetime | None
 
 
 class CSVImportResult(BaseModel):
@@ -93,9 +92,9 @@ class CSVImportResult(BaseModel):
 
 @router.get("", response_model=list[WorkOrderResponse])
 async def list_work_orders(
-    shop_id: Optional[str] = Query(None, description="Filter by shop ID"),
-    status: Optional[WorkOrderStatus] = Query(None, description="Filter by status"),
-    customer_name: Optional[str] = Query(None, description="Search by customer name"),
+    shop_id: str | None = Query(None, description="Filter by shop ID"),
+    status: WorkOrderStatus | None = Query(None, description="Filter by status"),
+    customer_name: str | None = Query(None, description="Search by customer name"),
 ) -> list[WorkOrder]:
     """List work orders with optional filters."""
     query = {}

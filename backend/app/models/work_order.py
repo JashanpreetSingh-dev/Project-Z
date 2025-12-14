@@ -2,9 +2,8 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
-from beanie import Document, Indexed, Link
+from beanie import Document, Indexed
 from pydantic import BaseModel, Field
 
 
@@ -24,10 +23,10 @@ class Vehicle(BaseModel):
 
     make: str = Field(..., description="Vehicle make (e.g., Honda)")
     model: str = Field(..., description="Vehicle model (e.g., Civic)")
-    year: Optional[int] = Field(None, description="Vehicle year")
-    color: Optional[str] = Field(None, description="Vehicle color")
-    license_plate: Optional[str] = Field(None, description="License plate number")
-    vin: Optional[str] = Field(None, description="Vehicle Identification Number")
+    year: int | None = Field(None, description="Vehicle year")
+    color: str | None = Field(None, description="Vehicle color")
+    license_plate: str | None = Field(None, description="License plate number")
+    vin: str | None = Field(None, description="Vehicle Identification Number")
 
 
 class ServiceItem(BaseModel):
@@ -35,7 +34,7 @@ class ServiceItem(BaseModel):
 
     name: str = Field(..., description="Service name")
     status: WorkOrderStatus = Field(default=WorkOrderStatus.PENDING)
-    notes: Optional[str] = Field(None, description="Service notes")
+    notes: str | None = Field(None, description="Service notes")
 
 
 class WorkOrder(Document):
@@ -47,8 +46,8 @@ class WorkOrder(Document):
 
     # Customer info
     customer_name: Indexed(str) = Field(..., description="Customer full name")  # type: ignore
-    customer_phone: Optional[str] = Field(None, description="Customer phone number")
-    customer_email: Optional[str] = Field(None, description="Customer email")
+    customer_phone: str | None = Field(None, description="Customer phone number")
+    customer_email: str | None = Field(None, description="Customer email")
 
     # Vehicle
     vehicle: Vehicle = Field(..., description="Vehicle information")
@@ -60,11 +59,11 @@ class WorkOrder(Document):
     # Dates
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    estimated_completion: Optional[datetime] = Field(None)
-    completed_at: Optional[datetime] = Field(None)
+    estimated_completion: datetime | None = Field(None)
+    completed_at: datetime | None = Field(None)
 
     # Notes
-    notes: Optional[str] = Field(None, description="General notes")
+    notes: str | None = Field(None, description="General notes")
 
     class Settings:
         name = "work_orders"

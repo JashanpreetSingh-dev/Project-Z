@@ -1,13 +1,12 @@
 """Shop management endpoints."""
 
 from datetime import datetime
-from typing import Optional
 
 from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
-from app.models.shop import Shop, WeeklyHours, ShopSettings
+from app.models.shop import Shop, ShopSettings, WeeklyHours
 
 router = APIRouter()
 
@@ -27,24 +26,24 @@ class ShopCreate(BaseModel):
     state: str = Field(..., min_length=2, max_length=2)
     zip_code: str
 
-    hours: Optional[WeeklyHours] = None
+    hours: WeeklyHours | None = None
     services: list[str] = []
-    settings: Optional[ShopSettings] = None
+    settings: ShopSettings | None = None
 
 
 class ShopUpdate(BaseModel):
     """Schema for updating a shop."""
 
-    name: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    zip_code: Optional[str] = None
+    name: str | None = None
+    phone: str | None = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zip_code: str | None = None
 
-    hours: Optional[WeeklyHours] = None
-    services: Optional[list[str]] = None
-    settings: Optional[ShopSettings] = None
+    hours: WeeklyHours | None = None
+    services: list[str] | None = None
+    settings: ShopSettings | None = None
 
 
 class ShopResponse(BaseModel):
@@ -57,7 +56,7 @@ class ShopResponse(BaseModel):
     city: str
     state: str
     zip_code: str
-    hours: Optional[WeeklyHours]
+    hours: WeeklyHours | None
     services: list[str]
     settings: ShopSettings
     created_at: datetime
