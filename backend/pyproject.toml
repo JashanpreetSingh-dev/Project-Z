@@ -23,11 +23,8 @@ known-first-party = ["app"]
 quote-style = "double"
 indent-style = "space"
 
-[tool.pyright]
-pythonVersion = "3.11"
-typeCheckingMode = "basic"
-include = ["app"]
-exclude = ["**/__pycache__", ".venv", "venv", "tests"]
+[tool.pyrefly]
+search_path = ["app"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

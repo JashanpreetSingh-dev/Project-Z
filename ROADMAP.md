@@ -212,7 +212,7 @@ This document breaks down the MVP into sequential development phases. Each phase
 | **TTS** | Deepgram Aura / ElevenLabs | Low latency streaming |
 | **Telephony** | Twilio | Best documentation, media streams |
 | **Frontend** | Next.js | Full-stack dashboard |
-| **CI/CD** | GitHub Actions + Ruff + Pyright | Linting, type checking, testing |
+| **CI/CD** | GitHub Actions + Ruff + Pyrefly | Linting, type checking, testing |
 
 ---
 

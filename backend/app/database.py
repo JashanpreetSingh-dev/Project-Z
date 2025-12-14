@@ -14,11 +14,11 @@ async def init_db() -> None:
     settings = get_settings()
 
     # Create Motor client
-    client = AsyncIOMotorClient(settings.mongodb_url)
+    client: AsyncIOMotorClient = AsyncIOMotorClient(settings.mongodb_url)
 
     # Initialize Beanie with document models
     await init_beanie(
-        database=client[settings.database_name],
+        database=client[settings.database_name],  # type: ignore[arg-type]
         document_models=[
             Shop,
             WorkOrder,

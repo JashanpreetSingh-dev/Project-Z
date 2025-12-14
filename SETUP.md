@@ -125,7 +125,7 @@ ruff check .
 ruff format .
 
 # Type check
-pyright
+pyrefly check
 ```
 
 ## Backend Structure

@@ -1,6 +1,6 @@
 """Shop management endpoints."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from beanie import PydanticObjectId
 from fastapi import APIRouter, HTTPException, status
@@ -27,7 +27,7 @@ class ShopCreate(BaseModel):
     zip_code: str
 
     hours: WeeklyHours | None = None
-    services: list[str] = []
+    services: list[str] = Field(default_factory=list)
     settings: ShopSettings | None = None
 
 
@@ -108,7 +108,7 @@ async def update_shop(shop_id: str, shop_data: ShopUpdate) -> Shop:
         )
 
     update_data = shop_data.model_dump(exclude_unset=True)
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(UTC)
 
     await shop.update({"$set": update_data})
     await shop.sync()

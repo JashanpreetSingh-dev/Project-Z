@@ -2,7 +2,8 @@
 
 import csv
 import io
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Any
 
 from beanie import PydanticObjectId
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile, status
@@ -97,7 +98,7 @@ async def list_work_orders(
     customer_name: str | None = Query(None, description="Search by customer name"),
 ) -> list[WorkOrder]:
     """List work orders with optional filters."""
-    query = {}
+    query: dict[str, Any] = {}
 
     if shop_id:
         query["shop_id"] = shop_id
@@ -154,11 +155,11 @@ async def update_work_order(order_id: str, order_data: WorkOrderUpdate) -> WorkO
         )
 
     update_data = order_data.model_dump(exclude_unset=True)
-    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_at"] = datetime.now(UTC)
 
     # Handle status change to PICKED_UP
     if order_data.status == WorkOrderStatus.PICKED_UP and order.status != WorkOrderStatus.PICKED_UP:
-        update_data["completed_at"] = datetime.utcnow()
+        update_data["completed_at"] = datetime.now(UTC)
 
     await order.update({"$set": update_data})
     await order.sync()
@@ -282,6 +283,7 @@ async def import_work_orders_csv(
                     year=year,
                     color=row.get("vehicle_color"),
                     license_plate=row.get("license_plate"),
+                    vin=row.get("vin"),
                 ),
                 services=services,
                 status=order_status,

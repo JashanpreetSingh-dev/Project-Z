@@ -1,9 +1,14 @@
 """Shop model for auto repair businesses."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from beanie import Document
 from pydantic import BaseModel, Field
+
+
+def utc_now() -> datetime:
+    """Return current UTC time as timezone-aware datetime."""
+    return datetime.now(UTC)
 
 
 class BusinessHours(BaseModel):
@@ -29,16 +34,13 @@ class WeeklyHours(BaseModel):
 class ShopSettings(BaseModel):
     """AI and call handling settings for the shop."""
 
-    ai_enabled: bool = Field(default=True, description="Whether AI receptionist is active")
-    transfer_number: str | None = Field(None, description="Number to transfer calls to")
+    ai_enabled: bool = True
+    transfer_number: str | None = None
     allowed_intents: list[str] = Field(
-        default=["CHECK_STATUS", "GET_HOURS", "GET_LOCATION", "GET_SERVICES", "TRANSFER_HUMAN"],
+        default_factory=lambda: ["CHECK_STATUS", "GET_HOURS", "GET_LOCATION", "GET_SERVICES", "TRANSFER_HUMAN"],
         description="Intents the AI is allowed to handle",
     )
-    greeting_message: str = Field(
-        default="Thank you for calling {shop_name}. How can I help you today?",
-        description="Custom greeting message",
-    )
+    greeting_message: str = "Thank you for calling {shop_name}. How can I help you today?"
 
 
 class Shop(Document):
@@ -51,12 +53,12 @@ class Shop(Document):
     state: str = Field(..., description="State")
     zip_code: str = Field(..., description="ZIP code")
 
-    hours: WeeklyHours | None = Field(default=None, description="Business hours")
-    services: list[str] = Field(default=[], description="Services offered")
+    hours: WeeklyHours | None = None
+    services: list[str] = Field(default_factory=list)
     settings: ShopSettings = Field(default_factory=ShopSettings)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
     class Settings:
         name = "shops"
