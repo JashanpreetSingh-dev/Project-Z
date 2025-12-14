@@ -2,15 +2,20 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { Sidebar } from "@/components/dashboard/sidebar";
 
+// Check if Clerk is configured (for CI builds without secrets)
+const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect("/sign-in");
+  // Skip auth check when Clerk is not configured (CI builds)
+  if (isClerkConfigured) {
+    const { userId } = await auth();
+    if (!userId) {
+      redirect("/sign-in");
+    }
   }
 
   return (
