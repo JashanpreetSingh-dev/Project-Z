@@ -1,102 +1,125 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Search, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AudioPlayer } from "@/components/demo/audio-player";
+import {
+  BlurReveal,
+  ScrollReveal,
+  TextReveal,
+  GradientTextReveal,
+  MagneticButton,
+  FadeBlur,
+} from "@/components/animations";
 
 export default function DemoPage() {
   return (
     <>
       {/* Hero */}
-      <section className="container mx-auto px-4 py-24">
-        <div className="mx-auto max-w-3xl text-center animate-fade-in-up">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Experience{" "}
-            <span className="gradient-text">Voice AI</span>
+      <section className="container mx-auto px-4 py-20 lg:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <BlurReveal delay={0} direction="none">
+            <p className="section-eyebrow">Demo</p>
+          </BlurReveal>
+          <h1 className="heading-display">
+            <TextReveal text="Experience" delay={0.1} />
+            {" "}
+            <GradientTextReveal delay={0.3}>Voice AI</GradientTextReveal>
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground">
-            Listen to how our AI receptionist handles real customer calls.
-          </p>
+          <BlurReveal delay={0.4} blurAmount={6}>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Listen to how our AI receptionist handles real calls.
+            </p>
+          </BlurReveal>
         </div>
       </section>
 
       {/* Demo Section */}
-      <section className="pb-24">
+      <section className="pb-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto animate-fade-in">
-            <AudioPlayer />
-          </div>
+          <FadeBlur delay={0.3}>
+            <div className="max-w-4xl mx-auto">
+              <AudioPlayer />
+            </div>
+          </FadeBlur>
         </div>
       </section>
 
       {/* What You're Seeing */}
-      <section className="border-t bg-muted/30 py-24">
+      <section className="border-t bg-muted/20 py-20 lg:py-24">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center mb-16">
-            <h2 className="text-3xl font-bold sm:text-4xl">
-              What You&apos;re Experiencing
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              This demo showcases how Voice AI handles common auto shop calls.
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
-            <div className="rounded-2xl border bg-card p-6 text-center">
-              <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                <span className="text-2xl">✓</span>
-              </div>
-              <h3 className="font-semibold">Real Scenarios</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                These conversations mirror actual calls our AI handles daily.
-              </p>
+          <ScrollReveal>
+            <div className="mx-auto max-w-2xl text-center mb-12">
+              <p className="section-eyebrow">About this demo</p>
+              <h2 className="heading-section">What you&apos;re hearing</h2>
             </div>
+          </ScrollReveal>
 
-            <div className="rounded-2xl border bg-card p-6 text-center">
-              <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <span className="text-2xl">🔍</span>
+          <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+            <BlurReveal delay={0.1} blurAmount={6}>
+              <div className="card-feature text-center h-full">
+                <div className="mx-auto mb-4 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Check className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold">Real Scenarios</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Actual calls our AI handles daily.
+                </p>
               </div>
-              <h3 className="font-semibold">Data Lookups</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                The AI accesses real shop data to provide accurate responses.
-              </p>
-            </div>
+            </BlurReveal>
 
-            <div className="rounded-2xl border bg-card p-6 text-center">
-              <div className="mx-auto mb-4 w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <span className="text-2xl">🔄</span>
+            <BlurReveal delay={0.2} blurAmount={6}>
+              <div className="card-feature text-center h-full">
+                <div className="mx-auto mb-4 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Search className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold">Data Lookups</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  AI accesses real shop data for accuracy.
+                </p>
               </div>
-              <h3 className="font-semibold">Smart Fallbacks</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Complex questions get transferred to your team with context.
-              </p>
-            </div>
+            </BlurReveal>
+
+            <BlurReveal delay={0.3} blurAmount={6}>
+              <div className="card-feature text-center h-full">
+                <div className="mx-auto mb-4 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <RefreshCw className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold">Smart Fallbacks</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Complex questions transfer with context.
+                </p>
+              </div>
+            </BlurReveal>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-24">
+      <section className="py-20 lg:py-24">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl rounded-2xl border bg-card p-8 md:p-12 text-center">
-            <h2 className="text-2xl font-bold sm:text-3xl">
-              Ready for the Real Thing?
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              These are actual AI-generated voices. Customers call your number and have
-              real conversations with the AI—just like what you heard above.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="gradient-bg border-0 glow" asChild>
-                <Link href="/sign-up">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/contact">Schedule a Live Demo</Link>
-              </Button>
+          <BlurReveal blurAmount={8}>
+            <div className="mx-auto max-w-2xl rounded-xl border bg-card p-8 md:p-10 text-center">
+              <h2 className="text-2xl font-bold">Ready for the real thing?</h2>
+              <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
+                Customers call your number and have real conversations with the AI—just like above.
+              </p>
+              <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <MagneticButton strength={0.15}>
+                  <Button size="lg" className="btn-primary-glow h-12" asChild>
+                    <Link href="/sign-up">
+                      Start Free Trial
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </MagneticButton>
+                <MagneticButton strength={0.1}>
+                  <Button variant="ghost" className="text-muted-foreground" asChild>
+                    <Link href="/contact">Schedule a call</Link>
+                  </Button>
+                </MagneticButton>
+              </div>
             </div>
-          </div>
+          </BlurReveal>
         </div>
       </section>
     </>

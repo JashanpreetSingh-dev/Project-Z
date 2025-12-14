@@ -1,6 +1,13 @@
 import Link from "next/link";
-import { ArrowRight, Check, HelpCircle } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  BlurReveal,
+  ScrollReveal,
+  TextReveal,
+  GradientTextReveal,
+  MagneticButton,
+} from "@/components/animations";
 
 export const metadata = {
   title: "Pricing - Voice AI",
@@ -10,7 +17,7 @@ export const metadata = {
 const plans = [
   {
     name: "Starter",
-    description: "Perfect for small shops just getting started",
+    description: "For small shops getting started",
     price: 49,
     period: "month",
     features: [
@@ -18,7 +25,7 @@ const plans = [
       "AI phone receptionist",
       "Repair status lookups",
       "Business hours & location",
-      "Call summaries dashboard",
+      "Call summaries",
       "Email support",
     ],
     cta: "Start Free Trial",
@@ -26,34 +33,32 @@ const plans = [
   },
   {
     name: "Professional",
-    description: "For busy shops with high call volumes",
+    description: "For busy shops with high volume",
     price: 99,
     period: "month",
     features: [
       "Up to 500 calls/month",
       "Everything in Starter",
       "Smart call transfers",
-      "Priority support",
-      "Custom greeting messages",
-      "CSV data upload",
+      "Custom greetings",
       "Analytics dashboard",
+      "Priority support",
     ],
     cta: "Start Free Trial",
     popular: true,
   },
   {
     name: "Enterprise",
-    description: "For multi-location or high-volume shops",
+    description: "For multi-location shops",
     price: null,
     period: null,
     features: [
       "Unlimited calls",
       "Everything in Professional",
-      "Shop management integrations",
-      "Dedicated account manager",
+      "Shop integrations",
+      "Dedicated manager",
       "Custom AI training",
       "SLA guarantee",
-      "Phone support",
     ],
     cta: "Contact Sales",
     popular: false,
@@ -87,107 +92,114 @@ export default function PricingPage() {
   return (
     <>
       {/* Hero */}
-      <section className="container mx-auto px-4 py-24">
-        <div className="mx-auto max-w-3xl text-center animate-fade-in-up">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-            Simple, Transparent{" "}
-            <span className="gradient-text">Pricing</span>
+      <section className="container mx-auto px-4 py-20 lg:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <BlurReveal delay={0} direction="none">
+            <p className="section-eyebrow">Pricing</p>
+          </BlurReveal>
+          <h1 className="heading-display">
+            <TextReveal text="Simple, transparent" delay={0.1} />
+            {" "}
+            <GradientTextReveal delay={0.3}>pricing</GradientTextReveal>
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground">
-            Start free, upgrade when you&apos;re ready. No hidden fees, no contracts.
-          </p>
+          <BlurReveal delay={0.4} blurAmount={6}>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Start free. No hidden fees, no contracts.
+            </p>
+          </BlurReveal>
         </div>
       </section>
 
       {/* Pricing Cards */}
-      <section className="pb-24">
+      <section className="pb-20">
         <div className="container mx-auto px-4">
-          <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto stagger-children">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl border bg-card p-8 ${
-                  plan.popular
-                    ? "border-primary shadow-lg ring-2 ring-primary/20"
-                    : ""
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="gradient-bg text-white text-sm font-medium px-4 py-1 rounded-full">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
+          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+            {plans.map((plan, index) => (
+              <BlurReveal key={plan.name} delay={0.1 + index * 0.1} blurAmount={6}>
+                <div
+                  className={`relative rounded-xl border bg-card p-6 h-full ${
+                    plan.popular
+                      ? "border-primary ring-1 ring-primary/20"
+                      : ""
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="gradient-bg text-white text-xs font-medium px-3 py-1 rounded-full">
+                        Popular
+                      </span>
+                    </div>
+                  )}
 
-                <div className="text-center">
-                  <h3 className="text-xl font-semibold">{plan.name}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {plan.description}
-                  </p>
+                  <div>
+                    <h3 className="text-lg font-semibold">{plan.name}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {plan.description}
+                    </p>
+
+                    <div className="mt-5">
+                      {plan.price !== null ? (
+                        <>
+                          <span className="text-3xl font-bold">${plan.price}</span>
+                          <span className="text-muted-foreground text-sm">/{plan.period}</span>
+                        </>
+                      ) : (
+                        <span className="text-3xl font-bold">Custom</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <ul className="mt-6 space-y-2.5">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5">
+                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span className="text-sm text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
 
                   <div className="mt-6">
-                    {plan.price !== null ? (
-                      <>
-                        <span className="text-4xl font-bold">${plan.price}</span>
-                        <span className="text-muted-foreground">/{plan.period}</span>
-                      </>
-                    ) : (
-                      <span className="text-4xl font-bold">Custom</span>
-                    )}
+                    <MagneticButton strength={plan.popular ? 0.15 : 0.1} className="w-full">
+                      <Button
+                        className={`w-full ${
+                          plan.popular ? "btn-primary-glow" : ""
+                        }`}
+                        variant={plan.popular ? "default" : "outline"}
+                        asChild
+                      >
+                        <Link href={plan.price !== null ? "/sign-up" : "/contact"}>
+                          {plan.cta}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </MagneticButton>
                   </div>
                 </div>
-
-                <ul className="mt-8 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
-                      <span className="text-sm text-muted-foreground">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-8">
-                  <Button
-                    className={`w-full ${
-                      plan.popular ? "gradient-bg border-0" : ""
-                    }`}
-                    variant={plan.popular ? "default" : "outline"}
-                    size="lg"
-                    asChild
-                  >
-                    <Link href={plan.price !== null ? "/sign-up" : "/contact"}>
-                      {plan.cta}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </div>
+              </BlurReveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* Feature Comparison */}
-      <section className="border-t bg-muted/30 py-24">
+      <section className="border-t bg-muted/20 py-20 lg:py-24">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center mb-16">
-            <h2 className="text-3xl font-bold sm:text-4xl">
-              Compare Plans
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              See what&apos;s included in each plan
-            </p>
-          </div>
+          <ScrollReveal>
+            <div className="mx-auto max-w-2xl text-center mb-12">
+              <p className="section-eyebrow">Compare</p>
+              <h2 className="heading-section">Compare plans</h2>
+            </div>
+          </ScrollReveal>
 
-          <div className="max-w-4xl mx-auto overflow-x-auto">
+          <BlurReveal delay={0.2} blurAmount={4}>
+            <div className="max-w-3xl mx-auto overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-4 px-4 font-semibold">Feature</th>
-                  <th className="text-center py-4 px-4 font-semibold">Starter</th>
-                  <th className="text-center py-4 px-4 font-semibold">Professional</th>
-                  <th className="text-center py-4 px-4 font-semibold">Enterprise</th>
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Feature</th>
+                  <th className="text-center py-3 px-4 font-medium">Starter</th>
+                  <th className="text-center py-3 px-4 font-medium">Pro</th>
+                  <th className="text-center py-3 px-4 font-medium">Enterprise</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,45 +209,43 @@ export default function PricingPage() {
                   { feature: "Status lookups", starter: true, pro: true, enterprise: true },
                   { feature: "Smart transfers", starter: false, pro: true, enterprise: true },
                   { feature: "Custom greetings", starter: false, pro: true, enterprise: true },
-                  { feature: "Analytics dashboard", starter: false, pro: true, enterprise: true },
+                  { feature: "Analytics", starter: false, pro: true, enterprise: true },
                   { feature: "Shop integrations", starter: false, pro: false, enterprise: true },
-                  { feature: "Priority support", starter: false, pro: true, enterprise: true },
-                  { feature: "Phone support", starter: false, pro: false, enterprise: true },
                   { feature: "SLA guarantee", starter: false, pro: false, enterprise: true },
                 ].map((row) => (
                   <tr key={row.feature} className="border-b">
-                    <td className="py-4 px-4 text-muted-foreground">{row.feature}</td>
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-3 px-4 text-muted-foreground">{row.feature}</td>
+                    <td className="py-3 px-4 text-center">
                       {typeof row.starter === "boolean" ? (
                         row.starter ? (
-                          <Check className="h-5 w-5 text-green-500 mx-auto" />
+                          <Check className="h-4 w-4 text-primary mx-auto" />
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-muted-foreground/50">—</span>
                         )
                       ) : (
-                        row.starter
+                        <span className="text-foreground">{row.starter}</span>
                       )}
                     </td>
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-3 px-4 text-center">
                       {typeof row.pro === "boolean" ? (
                         row.pro ? (
-                          <Check className="h-5 w-5 text-green-500 mx-auto" />
+                          <Check className="h-4 w-4 text-primary mx-auto" />
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-muted-foreground/50">—</span>
                         )
                       ) : (
-                        row.pro
+                        <span className="text-foreground">{row.pro}</span>
                       )}
                     </td>
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-3 px-4 text-center">
                       {typeof row.enterprise === "boolean" ? (
                         row.enterprise ? (
-                          <Check className="h-5 w-5 text-green-500 mx-auto" />
+                          <Check className="h-4 w-4 text-primary mx-auto" />
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-muted-foreground/50">—</span>
                         )
                       ) : (
-                        row.enterprise
+                        <span className="text-foreground">{row.enterprise}</span>
                       )}
                     </td>
                   </tr>
@@ -243,50 +253,52 @@ export default function PricingPage() {
               </tbody>
             </table>
           </div>
+          </BlurReveal>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="py-24">
+      <section className="py-20 lg:py-24">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center mb-16">
-            <h2 className="text-3xl font-bold sm:text-4xl">
-              Pricing FAQ
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Common questions about our pricing
-            </p>
-          </div>
+          <ScrollReveal>
+            <div className="mx-auto max-w-2xl text-center mb-10">
+              <p className="section-eyebrow">FAQ</p>
+              <h2 className="heading-section">Pricing questions</h2>
+            </div>
+          </ScrollReveal>
 
-          <div className="mx-auto max-w-3xl space-y-4">
+          <div className="mx-auto max-w-2xl space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="rounded-xl border bg-card p-6">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-primary" />
-                  {faq.q}
-                </h3>
-                <p className="mt-2 text-muted-foreground pl-7">{faq.a}</p>
-              </div>
+              <BlurReveal key={i} delay={i * 0.05} blurAmount={4}>
+                <div className="rounded-lg border bg-card p-5">
+                  <h3 className="font-medium">{faq.q}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{faq.a}</p>
+                </div>
+              </BlurReveal>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="border-t bg-muted/30 py-24">
+      <section className="border-t bg-muted/20 py-20 lg:py-24">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl">
-            Ready to Get Started?
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            Start your free trial today. No credit card required.
-          </p>
-          <Button size="lg" className="mt-8 gradient-bg border-0 h-12 px-8 text-base glow" asChild>
-            <Link href="/sign-up">
-              Start Free Trial
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <ScrollReveal>
+            <h2 className="heading-section">Ready to get started?</h2>
+            <p className="mx-auto mt-4 max-w-md text-muted-foreground">
+              Start your free trial today. No credit card required.
+            </p>
+          </ScrollReveal>
+          <BlurReveal delay={0.2}>
+            <MagneticButton strength={0.15}>
+              <Button size="lg" className="mt-8 btn-primary-glow h-14 px-8 text-base" asChild>
+                <Link href="/sign-up">
+                  Start Free Trial
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </MagneticButton>
+          </BlurReveal>
         </div>
       </section>
     </>

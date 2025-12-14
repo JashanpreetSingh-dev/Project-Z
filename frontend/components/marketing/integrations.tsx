@@ -1,72 +1,59 @@
 "use client";
 
-import { CheckCircle2, Clock } from "lucide-react";
+import { Check } from "lucide-react";
 import { TekmetricLogo, ShopWareLogo } from "@/components/icons";
-import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/animations";
+import { ScrollReveal } from "@/components/animations";
 
 const integrations = [
   {
     name: "Tekmetric",
-    description:
-      "Sync work orders, customer data, and repair status automatically from your Tekmetric account.",
+    description: "Sync work orders and customer data automatically.",
     Logo: TekmetricLogo,
-    status: "available" as const,
   },
   {
     name: "Shop-Ware",
-    description:
-      "Connect your Shop-Ware system for seamless access to repair orders and customer information.",
+    description: "Seamless access to repair orders and customers.",
     Logo: ShopWareLogo,
-    status: "available" as const,
   },
 ];
 
 export function IntegrationsSection() {
   return (
-    <section className="py-24 bg-muted/30 border-t">
+    <section className="py-20 lg:py-24 border-t">
       <div className="container mx-auto px-4">
         <ScrollReveal>
           <div className="mx-auto max-w-2xl text-center mb-12">
-            <h2 className="text-3xl font-bold sm:text-4xl">
-              Works With Your Shop Software
+            <p className="section-eyebrow">Integrations</p>
+            <h2 className="heading-section">
+              Works with your shop software
             </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Connect Voice AI to the tools you already use. Pull in work orders
-              and customer data automatically.
-            </p>
           </div>
         </ScrollReveal>
 
-        <StaggerContainer
-          className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto"
-          staggerDelay={0.15}
-        >
-          {integrations.map((integration) => (
-            <StaggerItem key={integration.name}>
-              <div className="group rounded-2xl border bg-card p-6 hover-lift h-full">
-                <div className="flex items-start justify-between mb-4">
-                  <integration.Logo className="h-10 text-foreground" />
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 px-3 py-1 text-xs font-medium text-green-600 dark:text-green-400">
-                    <CheckCircle2 className="h-3 w-3" />
+        <div className="grid gap-4 md:grid-cols-2 max-w-2xl mx-auto">
+          {integrations.map((integration, index) => (
+            <ScrollReveal key={integration.name} delay={index * 0.1}>
+              <div className="card-feature h-full">
+                <div className="flex items-center justify-between mb-3">
+                  <integration.Logo className="h-7 text-foreground" />
+                  <span className="inline-flex items-center gap-1 text-xs text-primary">
+                    <Check className="h-3 w-3" />
                     Available
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold">{integration.name}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <h3 className="font-semibold text-sm">{integration.name}</h3>
+                <p className="mt-1 text-xs text-muted-foreground">
                   {integration.description}
                 </p>
               </div>
-            </StaggerItem>
+            </ScrollReveal>
           ))}
-        </StaggerContainer>
+        </div>
 
-        <ScrollReveal delay={0.3}>
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>More integrations coming soon</span>
-            </div>
-          </div>
+        <ScrollReveal delay={0.2}>
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            More integrations coming soon
+          </p>
         </ScrollReveal>
       </div>
     </section>

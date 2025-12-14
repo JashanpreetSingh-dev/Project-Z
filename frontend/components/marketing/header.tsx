@@ -1,40 +1,45 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Zap, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Features", href: "/features" },
   { label: "Pricing", href: "/pricing" },
   { label: "Demo", href: "/demo" },
-  { label: "About", href: "/about" },
 ];
 
 export function MarketingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 glass border-b">
-      <div className="container mx-auto px-4 py-4">
-        <nav className="flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
+      <div className="container mx-auto px-4">
+        <nav className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-bg">
               <Zap className="h-4 w-4 text-white" />
             </div>
-            <span className="text-xl font-bold">Voice AI</span>
+            <span className="text-lg font-semibold">Voice AI</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className={cn(
+                  "nav-link",
+                  pathname === item.href && "nav-link-active"
+                )}
               >
                 {item.label}
               </Link>
@@ -42,12 +47,12 @@ export function MarketingHeader() {
           </div>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
               <Link href="/sign-in">Sign In</Link>
             </Button>
-            <Button className="gradient-bg border-0" asChild>
+            <Button size="sm" className="gradient-bg border-0 shadow-md" asChild>
               <Link href="/sign-up">Get Started</Link>
             </Button>
           </div>
@@ -71,24 +76,29 @@ export function MarketingHeader() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden pt-4 pb-2 animate-fade-in">
-            <div className="flex flex-col gap-2">
+          <div className="md:hidden py-4 animate-fade-in border-t">
+            <div className="flex flex-col gap-1">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  className={cn(
+                    "px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
+                    pathname === item.href 
+                      ? "bg-muted text-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
-              <div className="border-t my-2" />
-              <div className="flex flex-col gap-2 px-4">
-                <Button variant="outline" asChild className="w-full">
+              <div className="border-t my-3" />
+              <div className="flex flex-col gap-2">
+                <Button variant="outline" asChild className="w-full justify-center">
                   <Link href="/sign-in">Sign In</Link>
                 </Button>
-                <Button className="gradient-bg border-0 w-full" asChild>
+                <Button className="gradient-bg border-0 w-full justify-center" asChild>
                   <Link href="/sign-up">Get Started</Link>
                 </Button>
               </div>

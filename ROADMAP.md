@@ -21,8 +21,9 @@ This document breaks down the MVP into sequential development phases. Each phase
 
 | Phase | Focus | Deliverable |
 |-------|-------|-------------|
-| 7 | Shop System Integrations | Tekmetric + Shop-Ware read-only sync |
-| 8 | Future Capabilities | Booking, multi-language, SMS, etc. |
+| 7 | Multi-Channel Communication | SMS + WhatsApp with cross-channel context |
+| 8 | Shop System Integrations | Tekmetric + Shop-Ware read-only sync |
+| 9 | Future Capabilities | Booking, multi-language, outbound calls, etc. |
 
 ---
 
@@ -407,7 +408,127 @@ The foundation, voice pipeline, telephony, and dashboard are built:
 
 ## Post-MVP: Future Phases
 
-### Phase 7: Shop Management System Integrations
+### Phase 7: Multi-Channel Communication
+
+**Goal:** Expand beyond voice to SMS and WhatsApp, with unified cross-channel context.
+
+#### Core Concept
+
+One AI receptionist across all channels. Customers can call, text, or WhatsApp — same instant answers, same work order lookups, 24/7. The AI remembers conversations across channels for a seamless experience.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Customer Channels                     │
+├─────────────┬─────────────┬─────────────┬──────────────┤
+│   Phone     │    SMS      │  WhatsApp   │  (Future)    │
+│   (Done)    │   (New)     │   (New)     │  Web Widget  │
+└──────┬──────┴──────┬──────┴──────┬──────┴──────────────┘
+       │             │             │
+       └─────────────┼─────────────┘
+                     ▼
+         ┌───────────────────────┐
+         │   CustomerContext     │
+         │  (keyed by phone #)   │
+         └───────────┬───────────┘
+                     ▼
+         ┌───────────────────────┐
+         │  ConversationService  │
+         │     + ToolRegistry    │
+         └───────────────────────┘
+```
+
+#### CustomerContext Model
+
+```python
+CustomerContext {
+    phone_number: str        # E.164 format (+1XXXXXXXXXX) - primary key
+    shop_id: str
+    last_interaction: datetime
+    
+    # Cross-channel interaction history
+    interactions: [
+        { channel: "voice", timestamp, intent, summary },
+        { channel: "sms", timestamp, message, response },
+        { channel: "whatsapp", timestamp, message, response },
+    ]
+    
+    # Accumulated customer knowledge
+    known_info: {
+        name: str | None
+        vehicles: [{ year, make, model }]
+        active_work_orders: [order_ids]
+    }
+}
+```
+
+#### SMS Channel
+- [ ] Create `app/modules/sms/` module
+- [ ] Implement Twilio SMS webhook (`POST /api/sms/incoming`)
+- [ ] Build SMS response sender (Twilio Messages API)
+- [ ] Connect to existing `ConversationService`
+- [ ] Add phone number normalization (E.164)
+- [ ] Implement CustomerContext lookup/update
+- [ ] Add SMS toggle in dashboard settings
+- [ ] Handle multi-message conversations (session continuity)
+
+#### WhatsApp Channel
+- [ ] Research Twilio WhatsApp vs Meta Business API
+- [ ] Create `app/modules/whatsapp/` module
+- [ ] Implement WhatsApp webhook (`POST /api/whatsapp/incoming`)
+- [ ] Build WhatsApp response sender
+- [ ] Connect to existing `ConversationService`
+- [ ] Share CustomerContext with SMS/Voice
+- [ ] Add WhatsApp toggle in dashboard settings
+- [ ] Handle WhatsApp-specific features (read receipts, media)
+
+#### Cross-Channel Context
+- [ ] Create `CustomerContext` model in database
+- [ ] Implement context lookup by phone number
+- [ ] Update context after each interaction (any channel)
+- [ ] Inject context into ConversationService prompts
+- [ ] Set context TTL (7 days or until work order closes)
+- [ ] Privacy: store intents/summaries, not full messages
+
+#### User Experience Examples
+
+**Call → SMS:**
+> Customer calls to check status, then texts later
+> 
+> **SMS:** "Is my car ready?"
+> **AI:** "Hi John! Your 2019 Civic is still in progress — same as when you called this morning. I'll text you when it's ready."
+
+**SMS → Call:**
+> Customer texts first, then calls
+> 
+> **AI (on call):** "Hi! I see you texted earlier about your Accord. It's ready for pickup — would you like the address?"
+
+**Proactive handoff:**
+> During a call
+> 
+> **AI:** "Your car will be ready around 3pm. Want me to text you a reminder when it's done?"
+
+#### Backend Structure
+
+```
+backend/app/modules/
+├── voice/           # Existing (phone + realtime)
+├── sms/             # NEW
+│   ├── router.py    # POST /api/sms/incoming
+│   └── service.py   # Thin wrapper → ConversationService
+├── whatsapp/        # NEW
+│   ├── router.py    # POST /api/whatsapp/incoming
+│   └── service.py   # Thin wrapper → ConversationService
+└── context/         # NEW
+    ├── models.py    # CustomerContext model
+    └── service.py   # Context lookup/update
+```
+
+#### Milestone
+✅ Customer can text or WhatsApp the shop, get AI responses, and context carries across all channels.
+
+---
+
+### Phase 8: Shop Management System Integrations
 
 **Goal:** Replace CSV uploads with real-time integrations to popular auto shop software.
 
@@ -440,7 +561,7 @@ The foundation, voice pipeline, telephony, and dashboard are built:
 
 ---
 
-### Phase 8: Additional Future Capabilities
+### Phase 9: Additional Future Capabilities
 
 These are explicitly out of scope for MVP but may be considered later:
 
@@ -449,7 +570,7 @@ These are explicitly out of scope for MVP but may be considered later:
 | Appointment booking | Requires write access to shop systems |
 | Multi-language support | Spanish priority for many markets |
 | Outbound calls | Proactive status notifications |
-| SMS follow-up | Text summary after calls |
+| Website chat widget | Embed AI on shop's website |
 | Additional verticals | Other service businesses (HVAC, dental, etc.) |
 
 ---

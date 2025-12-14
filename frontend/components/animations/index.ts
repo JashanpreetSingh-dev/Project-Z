@@ -6,3 +6,42 @@ export {
 } from "./scroll-reveal";
 
 export { AnimatedCounter, AnimatedTextCounter } from "./animated-counter";
+
+export {
+  TextReveal,
+  TextRevealByChar,
+  GradientTextReveal,
+} from "./text-reveal";
+
+export {
+  GradientBackground,
+  AnimatedGradient,
+} from "./gradient-background";
+
+export {
+  MagneticButton,
+  HoverScale,
+  GlowButtonWrapper,
+} from "./magnetic-button";
+
+export {
+  FloatingElement,
+  RotatingFloat,
+  PulseElement,
+  FloatingShapes,
+} from "./floating-element";
+
+export {
+  BlurReveal,
+  BlurStaggerContainer,
+  BlurStaggerItem,
+  FadeBlur,
+} from "./blur-reveal";
+
+export {
+  ParallaxSection,
+  ParallaxContainer,
+  ParallaxLayer,
+  ParallaxBackground,
+  HorizontalParallax,
+} from "./parallax";
