@@ -77,9 +77,7 @@ async def update_shop_config(shop_id: str, data: ShopConfigUpdate) -> ShopConfig
     return config
 
 
-async def update_shop_config_by_owner(
-    owner_id: str, data: ShopConfigUpdate
-) -> ShopConfig:
+async def update_shop_config_by_owner(owner_id: str, data: ShopConfigUpdate) -> ShopConfig:
     """Update the shop configuration for a specific owner.
 
     Args:

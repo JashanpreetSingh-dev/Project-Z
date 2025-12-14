@@ -44,7 +44,7 @@ This document breaks down the MVP into sequential development phases. Each phase
 - [x] Create basic CRUD API for call logs
 - [ ] Write seed data scripts for testing
 - [x] Set up environment configuration and secrets management
-- [x] Set up CI/CD (GitHub Actions, Ruff, Pyrefly)
+- [x] Set up CI/CD (GitHub Actions, Ruff, Pyrefly, ESLint, TypeScript)
 - [x] Restructure to modular architecture (see Backend Structure below)
 
 ### Milestone
@@ -287,7 +287,7 @@ frontend/
 | **Frontend** | Next.js 14 (App Router) | Full-stack dashboard, React Server Components |
 | **Auth** | Clerk | Managed auth, easy JWT integration |
 | **UI Components** | shadcn/ui + Tailwind | Modern, accessible, customizable |
-| **CI/CD** | GitHub Actions + Ruff + Pyrefly | Linting, type checking, testing |
+| **CI/CD** | GitHub Actions + Ruff + Pyrefly + ESLint | Backend & frontend linting, type checking, testing |
 
 ---
 
