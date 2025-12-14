@@ -36,10 +36,7 @@ def test_get_tools_schema(tool_registry):
 @pytest.mark.asyncio
 async def test_execute_lookup_work_order(tool_registry):
     """Test executing lookup_work_order tool."""
-    result = await tool_registry.execute(
-        "lookup_work_order",
-        {"customer_name": "John Smith"}
-    )
+    result = await tool_registry.execute("lookup_work_order", {"customer_name": "John Smith"})
 
     assert result["success"] is True
     assert "work_orders" in result
@@ -76,10 +73,7 @@ async def test_execute_list_services(tool_registry):
 @pytest.mark.asyncio
 async def test_execute_transfer_to_human(tool_registry):
     """Test executing transfer_to_human tool."""
-    result = await tool_registry.execute(
-        "transfer_to_human",
-        {"reason": "Customer requested"}
-    )
+    result = await tool_registry.execute("transfer_to_human", {"reason": "Customer requested"})
 
     assert result["success"] is True
     assert result["action"] == "transfer"

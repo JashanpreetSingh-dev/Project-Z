@@ -62,7 +62,10 @@ class MockAdapter(ShopSystemAdapter):
                 if not name_parts or last_name.lower() not in name_parts:
                     continue
             if license_plate:
-                if license_plate.lower() != order.get("vehicle", {}).get("license_plate", "").lower():
+                if (
+                    license_plate.lower()
+                    != order.get("vehicle", {}).get("license_plate", "").lower()
+                ):
                     continue
             if phone:
                 # Normalize phone comparison (remove non-digits)

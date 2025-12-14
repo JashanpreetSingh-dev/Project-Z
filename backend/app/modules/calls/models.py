@@ -36,11 +36,15 @@ class CallLog(Document):
 
     # References
     shop_id: Indexed(str) = Field(..., description="Reference to shop")  # type: ignore[valid-type]
-    work_order_id: str | None = Field(default=None, description="Referenced work order if applicable")
+    work_order_id: str | None = Field(
+        default=None, description="Referenced work order if applicable"
+    )
 
     # Call metadata
     call_sid: str | None = Field(default=None, description="Telephony provider call ID")
-    caller_number: str | None = Field(default=None, description="Caller phone number (if available)")
+    caller_number: str | None = Field(
+        default=None, description="Caller phone number (if available)"
+    )
 
     # Timing
     timestamp: Indexed(datetime) = Field(default_factory=utc_now)  # type: ignore[valid-type]
@@ -66,7 +70,9 @@ class CallLog(Document):
 
     # Additional context
     fallback_used: bool = Field(default=False, description="Whether fallback logic was triggered")
-    transfer_reason: str | None = Field(default=None, description="Reason for transfer if applicable")
+    transfer_reason: str | None = Field(
+        default=None, description="Reason for transfer if applicable"
+    )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
 
     class Settings:

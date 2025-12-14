@@ -33,7 +33,9 @@ class ShopSettings(BaseModel):
         description="Intents the AI is allowed to handle",
     )
     greeting_message: str = "Thank you for calling {shop_name}. How can I help you today?"
-    max_call_duration_seconds: int = Field(default=300, description="Max call duration before auto-transfer")
+    max_call_duration_seconds: int = Field(
+        default=300, description="Max call duration before auto-transfer"
+    )
 
 
 class AdapterCredentials(BaseModel):
@@ -53,7 +55,9 @@ class ShopConfig(Document):
     phone: Indexed(str) = Field(..., description="Primary phone number (used to route calls)")  # type: ignore[valid-type]
 
     # Adapter configuration
-    adapter_type: AdapterType = Field(default=AdapterType.MOCK, description="Which data source to use")
+    adapter_type: AdapterType = Field(
+        default=AdapterType.MOCK, description="Which data source to use"
+    )
     adapter_credentials: AdapterCredentials = Field(default_factory=AdapterCredentials)
 
     # AI settings
