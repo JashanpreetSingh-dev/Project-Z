@@ -1,0 +1,32 @@
+{
+  "hours": {
+    "monday": {"open": "08:00", "close": "18:00", "closed": false},
+    "tuesday": {"open": "08:00", "close": "18:00", "closed": false},
+    "wednesday": {"open": "08:00", "close": "18:00", "closed": false},
+    "thursday": {"open": "08:00", "close": "18:00", "closed": false},
+    "friday": {"open": "08:00", "close": "18:00", "closed": false},
+    "saturday": {"open": "09:00", "close": "14:00", "closed": false},
+    "sunday": {"open": null, "close": null, "closed": true}
+  },
+  "location": {
+    "name": "Demo Auto Shop",
+    "address": "123 Main Street",
+    "city": "Springfield",
+    "state": "IL",
+    "zip_code": "62701",
+    "phone": "555-AUTO-SHOP",
+    "directions": "Located on the corner of Main Street and Oak Avenue, across from the post office"
+  },
+  "services": [
+    "Oil Change",
+    "Brake Service",
+    "Tire Service",
+    "Engine Diagnostics",
+    "Transmission Service",
+    "AC Repair",
+    "Battery Replacement",
+    "Alignment",
+    "State Inspection",
+    "Tune Up"
+  ]
+}

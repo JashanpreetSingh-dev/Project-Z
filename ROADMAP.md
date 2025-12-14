@@ -32,19 +32,46 @@ This document breaks down the MVP into sequential development phases. Each phase
 
 ### Tasks
 
-- [ ] Initialize project repository and structure
-- [ ] Choose and set up backend framework (e.g., FastAPI, Node.js)
-- [ ] Design database schema:
-  - Shops (id, name, phone, hours, services, address)
-  - Work Orders (id, shop_id, customer_name, vehicle, status, last_updated)
+- [x] Initialize project repository and structure
+- [x] Choose and set up backend framework → **FastAPI (Python)**
+- [x] Design database schema:
+  - Shops (id, name, phone, hours, services, address, settings)
+  - Work Orders (id, shop_id, customer_name, vehicle, status, services, timestamps)
   - Call Logs (id, shop_id, timestamp, intent, tool_called, result, confidence, duration, outcome)
-- [ ] Implement CSV upload/import for work orders
-- [ ] Create basic CRUD API for shop data
+- [x] Implement CSV upload/import for work orders
+- [x] Create basic CRUD API for shop data
+- [x] Create basic CRUD API for work orders
+- [x] Create basic CRUD API for call logs
 - [ ] Write seed data scripts for testing
-- [ ] Set up environment configuration and secrets management
+- [x] Set up environment configuration and secrets management
+- [x] Set up CI/CD (GitHub Actions, Ruff, Pyrefly)
+- [x] Restructure to modular architecture (see Backend Structure below)
 
 ### Milestone
 ✅ Can upload a CSV of work orders and query them via API.
+
+### Backend Structure (Completed)
+
+```
+backend/app/
+├── main.py                    # FastAPI app entry point
+├── config.py                  # Settings management
+├── database.py                # MongoDB/Beanie initialization
+│
+├── common/                    # Shared utilities
+│   ├── utils.py               # utc_now(), helpers
+│   ├── exceptions.py          # NotFoundError, ConflictError, etc.
+│   └── health.py              # Health check endpoints
+│
+├── modules/                   # Domain modules (layered)
+│   ├── shops/                 # models, schemas, router, service
+│   ├── work_orders/           # models, schemas, router, service
+│   ├── calls/                 # models, schemas, router, service
+│   └── voice/                 # (stubs for Phase 2-4)
+│
+└── adapters/                  # External data sources (Phase 7+)
+    └── shop_system.py         # ShopSystemAdapter ABC
+```
 
 ---
 
@@ -52,9 +79,11 @@ This document breaks down the MVP into sequential development phases. Each phase
 
 **Goal:** Build the LLM-powered intent classification and tool-calling system.
 
+**Code Location:** `app/modules/voice/` (stubs created)
+
 ### Tasks
 
-- [ ] Define intent taxonomy:
+- [x] Define intent taxonomy (stub in `voice/intents.py`):
   - `CHECK_STATUS` - vehicle/service status lookup
   - `GET_HOURS` - business hours inquiry
   - `GET_LOCATION` - address/directions
@@ -86,12 +115,14 @@ This document breaks down the MVP into sequential development phases. Each phase
 
 **Goal:** Integrate speech-to-text and text-to-speech for voice interactions.
 
+**Code Location:** `app/modules/voice/` (stubs: `asr.py`, `tts.py`, `service.py`)
+
 ### Tasks
 
-- [ ] Research and select ASR provider(s):
+- [x] Research and select ASR provider(s) → **Deepgram**
   - Options: Deepgram, AssemblyAI, Whisper, Google STT
   - Criteria: streaming support, latency, cost, accuracy
-- [ ] Research and select TTS provider(s):
+- [x] Research and select TTS provider(s) → **Deepgram Aura / ElevenLabs**
   - Options: ElevenLabs, PlayHT, Google TTS, Azure TTS
   - Criteria: streaming support, latency, natural voice quality
 - [ ] Implement streaming ASR integration
@@ -116,9 +147,11 @@ This document breaks down the MVP into sequential development phases. Each phase
 
 **Goal:** Connect voice pipeline to real phone calls.
 
+**Code Location:** `app/modules/voice/telephony.py` (stub created)
+
 ### Tasks
 
-- [ ] Research and select telephony provider:
+- [x] Research and select telephony provider → **Twilio**
   - Options: Twilio, Vonage, Telnyx, SignalWire
   - Criteria: WebSocket media streams, PSTN support, pricing
 - [ ] Implement inbound call handling:
@@ -241,11 +274,14 @@ This lets you validate the core AI logic early while building the data foundatio
 
 ## Next Actions
 
-1. [ ] Create repository structure
-2. [ ] Choose backend stack
-3. [ ] Design database schema
+1. [x] Create repository structure
+2. [x] Choose backend stack → FastAPI + MongoDB
+3. [x] Design database schema
 4. [ ] Draft initial intent prompts
-5. [ ] Set up development environment
+5. [x] Set up development environment
+6. [ ] Set up MongoDB (local or Atlas)
+7. [ ] Test API endpoints with sample data
+8. [ ] Begin Phase 2: Intent classification prototype
 
 ---
 
@@ -276,7 +312,7 @@ This lets you validate the core AI logic early while building the data foundatio
 - [ ] Add integration toggle in dashboard
 
 #### Integration Architecture
-- [ ] Design adapter pattern for multiple integrations
+- [x] Design adapter pattern for multiple integrations → `ShopSystemAdapter` ABC in `app/adapters/`
 - [ ] Build integration health monitoring
 - [ ] Implement sync scheduling (polling interval config)
 - [ ] Add manual re-sync option in dashboard

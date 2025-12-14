@@ -1,54 +1,46 @@
-"""Request/response schemas for shops."""
+"""Request/response schemas for shop configuration."""
 
 from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from app.modules.shops.models import ShopSettings, WeeklyHours
+from app.modules.shops.models import AdapterCredentials, AdapterType, ShopSettings
 
 
-class ShopCreate(BaseModel):
-    """Schema for creating a new shop."""
+class ShopConfigCreate(BaseModel):
+    """Schema for creating a new shop configuration."""
 
     name: str = Field(..., min_length=1, max_length=200)
-    phone: str = Field(..., min_length=10)
-    address: str
-    city: str
-    state: str = Field(..., min_length=2, max_length=2)
-    zip_code: str
+    phone: str = Field(..., min_length=10, description="Primary phone number for call routing")
 
-    hours: WeeklyHours | None = None
-    services: list[str] = Field(default_factory=list)
+    adapter_type: AdapterType = AdapterType.MOCK
+    adapter_credentials: AdapterCredentials | None = None
+
     settings: ShopSettings | None = None
 
 
-class ShopUpdate(BaseModel):
-    """Schema for updating a shop."""
+class ShopConfigUpdate(BaseModel):
+    """Schema for updating a shop configuration."""
 
     name: str | None = None
     phone: str | None = None
-    address: str | None = None
-    city: str | None = None
-    state: str | None = None
-    zip_code: str | None = None
 
-    hours: WeeklyHours | None = None
-    services: list[str] | None = None
+    adapter_type: AdapterType | None = None
+    adapter_credentials: AdapterCredentials | None = None
+
     settings: ShopSettings | None = None
 
 
-class ShopResponse(BaseModel):
-    """Schema for shop response."""
+class ShopConfigResponse(BaseModel):
+    """Schema for shop configuration response."""
 
     id: str
     name: str
     phone: str
-    address: str
-    city: str
-    state: str
-    zip_code: str
-    hours: WeeklyHours | None
-    services: list[str]
+
+    adapter_type: AdapterType
+    # Note: credentials are NOT returned in responses for security
+
     settings: ShopSettings
     created_at: datetime
     updated_at: datetime

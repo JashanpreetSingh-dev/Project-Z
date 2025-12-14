@@ -1,12 +1,17 @@
-"""Shop management module."""
+"""Shop configuration module."""
 
-from app.modules.shops.models import BusinessHours, Shop, ShopSettings, WeeklyHours
+from app.modules.shops.models import (
+    AdapterCredentials,
+    AdapterType,
+    ShopConfig,
+    ShopSettings,
+)
 from app.modules.shops.router import router
 
 __all__ = [
-    "BusinessHours",
-    "Shop",
+    "AdapterCredentials",
+    "AdapterType",
+    "ShopConfig",
     "ShopSettings",
-    "WeeklyHours",
     "router",
 ]

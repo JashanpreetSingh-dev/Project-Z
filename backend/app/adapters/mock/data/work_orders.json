@@ -1,0 +1,99 @@
+{
+  "work_orders": [
+    {
+      "order_id": "WO-2024-001",
+      "customer_name": "John Smith",
+      "customer_phone": "555-123-4567",
+      "vehicle": {
+        "make": "Honda",
+        "model": "Civic",
+        "year": 2020,
+        "color": "Blue",
+        "license_plate": "ABC1234"
+      },
+      "status": "IN_PROGRESS",
+      "services": [
+        {"name": "Oil Change", "status": "COMPLETED"},
+        {"name": "Tire Rotation", "status": "IN_PROGRESS"},
+        {"name": "Brake Inspection", "status": "PENDING"}
+      ],
+      "estimated_completion": "2024-12-13T17:00:00",
+      "notes": "Customer requested synthetic oil"
+    },
+    {
+      "order_id": "WO-2024-002",
+      "customer_name": "Sarah Johnson",
+      "customer_phone": "555-987-6543",
+      "vehicle": {
+        "make": "Toyota",
+        "model": "Camry",
+        "year": 2019,
+        "color": "Silver",
+        "license_plate": "XYZ5678"
+      },
+      "status": "READY",
+      "services": [
+        {"name": "Brake Pad Replacement", "status": "COMPLETED"},
+        {"name": "Brake Fluid Flush", "status": "COMPLETED"}
+      ],
+      "estimated_completion": "2024-12-13T14:00:00",
+      "notes": "Ready for pickup - called customer"
+    },
+    {
+      "order_id": "WO-2024-003",
+      "customer_name": "Mike Williams",
+      "customer_phone": "555-456-7890",
+      "vehicle": {
+        "make": "Ford",
+        "model": "F-150",
+        "year": 2021,
+        "color": "Black",
+        "license_plate": "TRK9999"
+      },
+      "status": "WAITING_PARTS",
+      "services": [
+        {"name": "Transmission Service", "status": "WAITING_PARTS"},
+        {"name": "Oil Change", "status": "COMPLETED"}
+      ],
+      "estimated_completion": "2024-12-15T12:00:00",
+      "notes": "Waiting for transmission filter - expected Monday"
+    },
+    {
+      "order_id": "WO-2024-004",
+      "customer_name": "Emily Davis",
+      "customer_phone": "555-222-3333",
+      "vehicle": {
+        "make": "Chevrolet",
+        "model": "Malibu",
+        "year": 2018,
+        "color": "White",
+        "license_plate": "CHV2018"
+      },
+      "status": "PENDING",
+      "services": [
+        {"name": "Check Engine Light Diagnosis", "status": "PENDING"}
+      ],
+      "estimated_completion": null,
+      "notes": "Dropped off this morning, will diagnose today"
+    },
+    {
+      "order_id": "WO-2024-005",
+      "customer_name": "Robert Brown",
+      "customer_phone": "555-111-2222",
+      "vehicle": {
+        "make": "Nissan",
+        "model": "Altima",
+        "year": 2022,
+        "color": "Red",
+        "license_plate": "NIS2022"
+      },
+      "status": "IN_PROGRESS",
+      "services": [
+        {"name": "AC Repair", "status": "IN_PROGRESS"},
+        {"name": "Cabin Air Filter", "status": "PENDING"}
+      ],
+      "estimated_completion": "2024-12-13T16:00:00",
+      "notes": "AC compressor being replaced"
+    }
+  ]
+}

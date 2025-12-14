@@ -5,8 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import get_settings
 from app.modules.calls.models import CallLog
-from app.modules.shops.models import Shop
-from app.modules.work_orders.models import WorkOrder
+from app.modules.shops.models import ShopConfig
 
 
 async def init_db() -> None:
@@ -17,12 +16,12 @@ async def init_db() -> None:
     client: AsyncIOMotorClient = AsyncIOMotorClient(settings.mongodb_url)
 
     # Initialize Beanie with document models
+    # Note: WorkOrder is NOT stored locally - it comes from adapters
     await init_beanie(
         database=client[settings.database_name],  # type: ignore[arg-type]
         document_models=[
-            Shop,
-            WorkOrder,
-            CallLog,
+            ShopConfig,  # Shop configuration and adapter settings
+            CallLog,  # AI call interaction logs
         ],
     )
 

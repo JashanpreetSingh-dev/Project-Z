@@ -11,7 +11,6 @@ from app.config import get_settings
 from app.database import close_db, init_db
 from app.modules.calls.router import router as calls_router
 from app.modules.shops.router import router as shops_router
-from app.modules.work_orders.router import router as work_orders_router
 
 
 @asynccontextmanager
@@ -47,9 +46,11 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(health_router, tags=["Health"])
-    app.include_router(shops_router, prefix="/api/shops", tags=["Shops"])
-    app.include_router(work_orders_router, prefix="/api/work-orders", tags=["Work Orders"])
-    app.include_router(calls_router, prefix="/api/calls", tags=["Calls"])
+    app.include_router(shops_router, prefix="/api/shops", tags=["Shop Config"])
+    app.include_router(calls_router, prefix="/api/calls", tags=["Call Logs"])
+
+    # Note: Work orders are NOT exposed via REST API
+    # They are fetched via adapters during voice calls
 
     return app
 
