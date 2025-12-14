@@ -1,20 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  FileText,
-  ChevronDown,
-  ChevronUp,
-  Bot,
-  User,
-  RotateCcw,
-} from "lucide-react";
+import { Play, Pause, Bot, User, Volume2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { audioSamples, type AudioSample, type TranscriptLine } from "@/lib/demo-data";
+import { audioSamples, type AudioSample } from "@/lib/demo-data";
 
 // Format milliseconds to MM:SS
 function formatTime(ms: number): string {
@@ -24,33 +13,111 @@ function formatTime(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-// Generate static waveform bars (seeded by sample id for consistency)
-function generateWaveformBars(sampleId: string, count: number): number[] {
-  const bars: number[] = [];
-  let seed = sampleId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  for (let i = 0; i < count; i++) {
-    seed = (seed * 9301 + 49297) % 233280;
-    const random = seed / 233280;
-    bars.push(25 + Math.sin(i * 0.3) * 15 + random * 30);
-  }
-  return bars;
+// Speaker Avatar Component
+function SpeakerAvatar({
+  type,
+  isActive,
+  label,
+}: {
+  type: "ai" | "customer";
+  isActive: boolean;
+  label: string;
+}) {
+  const isAI = type === "ai";
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      {/* Avatar with pulse animation */}
+      <div className="relative">
+        {/* Pulse ring animation when active */}
+        {isActive && (
+          <>
+            <div
+              className={`absolute inset-0 rounded-full ${
+                isAI ? "bg-primary" : "bg-muted-foreground"
+              } animate-ping opacity-20`}
+            />
+            <div
+              className={`absolute -inset-2 rounded-full ${
+                isAI ? "bg-primary/30" : "bg-muted-foreground/30"
+              } animate-pulse`}
+            />
+          </>
+        )}
+
+        {/* Main avatar circle */}
+        <div
+          className={`relative flex h-20 w-20 md:h-24 md:w-24 items-center justify-center rounded-full transition-all duration-300 ${
+            isActive
+              ? isAI
+                ? "gradient-bg ring-4 ring-primary/40 scale-110"
+                : "bg-muted ring-4 ring-muted-foreground/40 scale-110"
+              : isAI
+              ? "bg-primary/20"
+              : "bg-muted/50"
+          }`}
+        >
+          {isAI ? (
+            <Bot
+              className={`h-10 w-10 md:h-12 md:w-12 transition-colors ${
+                isActive ? "text-white" : "text-primary"
+              }`}
+            />
+          ) : (
+            <User
+              className={`h-10 w-10 md:h-12 md:w-12 transition-colors ${
+                isActive ? "text-foreground" : "text-muted-foreground"
+              }`}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Label */}
+      <div className="text-center">
+        <p
+          className={`font-medium text-sm transition-colors ${
+            isActive ? "text-foreground" : "text-muted-foreground"
+          }`}
+        >
+          {label}
+        </p>
+        {isActive && (
+          <div className="flex justify-center gap-1 mt-1">
+            <div
+              className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            />
+            <div
+              className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            />
+            <div
+              className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function AudioPlayer() {
-  const [selectedSample, setSelectedSample] = useState<AudioSample>(audioSamples[0]);
+  const [selectedSample, setSelectedSample] = useState<AudioSample>(
+    audioSamples[0]
+  );
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showTranscript, setShowTranscript] = useState(true);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
   const [segmentTimeMs, setSegmentTimeMs] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [hasAudioFiles, setHasAudioFiles] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const transcriptRef = useRef<HTMLDivElement>(null);
-  const waveformBars = useRef<number[]>(generateWaveformBars(selectedSample.id, 60));
+
+  // Get current speaker
+  const currentSpeaker =
+    selectedSample.transcript[currentSegmentIndex]?.speaker || "ai";
 
   // Calculate total elapsed time based on completed segments + current segment time
   const calculateTotalTimeMs = useCallback(() => {
@@ -74,35 +141,34 @@ export function AudioPlayer() {
         setIsLoading(false);
         return;
       }
-      
-      // Use a test audio element to check if file can be loaded
+
       const testAudio = new Audio();
       testAudio.preload = "metadata";
-      
+
       const onCanPlay = () => {
         setHasAudioFiles(true);
         setIsLoading(false);
         cleanup();
       };
-      
+
       const onError = () => {
         setHasAudioFiles(false);
         setIsLoading(false);
         cleanup();
       };
-      
+
       const cleanup = () => {
         testAudio.removeEventListener("canplaythrough", onCanPlay);
         testAudio.removeEventListener("error", onError);
         testAudio.src = "";
       };
-      
+
       testAudio.addEventListener("canplaythrough", onCanPlay);
       testAudio.addEventListener("error", onError);
       testAudio.src = firstSegment;
       testAudio.load();
     };
-    
+
     checkFirstSegment();
   }, [selectedSample]);
 
@@ -116,26 +182,19 @@ export function AudioPlayer() {
     };
 
     const handleEnded = () => {
-      // Move to next segment
       const nextIndex = currentSegmentIndex + 1;
       if (nextIndex < selectedSample.transcript.length) {
         setCurrentSegmentIndex(nextIndex);
         setSegmentTimeMs(0);
-        // Load and play next segment
         const nextSegment = selectedSample.transcript[nextIndex];
         audio.src = nextSegment.audioFile;
         audio.load();
         audio.play().catch(console.error);
       } else {
-        // Conversation finished
         setIsPlaying(false);
         setCurrentSegmentIndex(0);
         setSegmentTimeMs(0);
       }
-    };
-
-    const handleCanPlay = () => {
-      // Audio segment is ready to play
     };
 
     const handleError = () => {
@@ -144,26 +203,14 @@ export function AudioPlayer() {
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("ended", handleEnded);
-    audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("error", handleError);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
-      audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("error", handleError);
     };
   }, [currentSegmentIndex, selectedSample.transcript]);
-
-  // Auto-scroll transcript to current line
-  useEffect(() => {
-    if (showTranscript && currentSegmentIndex >= 0 && transcriptRef.current) {
-      const lineElement = transcriptRef.current.children[currentSegmentIndex] as HTMLElement;
-      if (lineElement) {
-        lineElement.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }
-  }, [currentSegmentIndex, showTranscript]);
 
   // Handle sample change
   const handleSampleChange = (sample: AudioSample) => {
@@ -174,7 +221,6 @@ export function AudioPlayer() {
     setIsPlaying(false);
     setCurrentSegmentIndex(0);
     setSegmentTimeMs(0);
-    waveformBars.current = generateWaveformBars(sample.id, 60);
   };
 
   // Play/Pause toggle
@@ -182,21 +228,18 @@ export function AudioPlayer() {
     const audio = audioRef.current;
 
     if (!audio || !hasAudioFiles) {
-      return; // No audio available
+      return;
     }
 
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
     } else {
-      // Load current segment if not loaded
       const currentSegment = selectedSample.transcript[currentSegmentIndex];
       if (audio.src !== window.location.origin + currentSegment.audioFile) {
         audio.src = currentSegment.audioFile;
         audio.load();
       }
-      audio.volume = isMuted ? 0 : volume;
-      audio.playbackRate = playbackRate;
 
       try {
         await audio.play();
@@ -204,38 +247,6 @@ export function AudioPlayer() {
       } catch (error) {
         console.error("Audio playback error:", error);
       }
-    }
-  };
-
-  // Volume control
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
-    }
-  };
-
-  const toggleMute = () => {
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.volume = volume || 1;
-        setIsMuted(false);
-      } else {
-        audioRef.current.volume = 0;
-        setIsMuted(true);
-      }
-    } else {
-      setIsMuted(!isMuted);
-    }
-  };
-
-  // Playback rate control
-  const handlePlaybackRateChange = (rate: number) => {
-    setPlaybackRate(rate);
-    if (audioRef.current) {
-      audioRef.current.playbackRate = rate;
     }
   };
 
@@ -251,15 +262,6 @@ export function AudioPlayer() {
 
   // Calculate progress percentage
   const progress = (currentTimeMs / selectedSample.durationMs) * 100;
-
-  // Check if a transcript line is currently active
-  const isLineActive = (index: number): boolean => {
-    return index === currentSegmentIndex && isPlaying;
-  };
-
-  const isLinePast = (index: number): boolean => {
-    return index < currentSegmentIndex;
-  };
 
   return (
     <div className="space-y-6">
@@ -299,209 +301,94 @@ export function AudioPlayer() {
         ))}
       </div>
 
-      {/* Player Card */}
-      <div className="rounded-2xl border bg-card p-6">
-        <div className="mb-4">
+      {/* Call Recording Visualization Card */}
+      <div className="rounded-2xl border bg-card p-6 md:p-8">
+        {/* Title */}
+        <div className="text-center mb-8">
           <h3 className="text-lg font-semibold">{selectedSample.title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{selectedSample.scenario}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {selectedSample.scenario}
+          </p>
         </div>
 
-        {/* Waveform Visualization */}
-        <div className="relative h-16 bg-muted/50 rounded-lg overflow-hidden mb-4 cursor-pointer group">
-          {/* Progress overlay */}
-          <div
-            className="absolute inset-y-0 left-0 bg-primary/20 transition-all duration-100"
-            style={{ width: `${progress}%` }}
+        {/* Two Speaker Avatars */}
+        <div className="flex justify-center items-start gap-12 md:gap-20 mb-8">
+          <SpeakerAvatar
+            type="customer"
+            isActive={isPlaying && currentSpeaker === "customer"}
+            label="Customer"
           />
+          <SpeakerAvatar
+            type="ai"
+            isActive={isPlaying && currentSpeaker === "ai"}
+            label="AI Assistant"
+          />
+        </div>
 
-          {/* Waveform bars */}
-          <div className="absolute inset-0 flex items-center justify-around px-2">
-            {waveformBars.current.map((height, i) => {
-              const barProgress = (i / waveformBars.current.length) * 100;
-              const isActive = barProgress < progress;
-              const isCurrent =
-                Math.abs(barProgress - progress) < 100 / waveformBars.current.length;
-              return (
-                <div
-                  key={i}
-                  className={`w-1 rounded-full transition-all duration-150 ${
-                    isActive
-                      ? "bg-primary"
-                      : "bg-muted-foreground/30 group-hover:bg-muted-foreground/50"
-                  } ${isCurrent && isPlaying ? "scale-y-110" : ""}`}
-                  style={{ height: `${height}%` }}
-                />
-              );
-            })}
+        {/* Current Dialog */}
+        <div className="max-w-lg mx-auto mb-8 min-h-[5rem]">
+          <div className="text-center">
+            <span className="text-xs font-medium text-muted-foreground">
+              {currentSpeaker === "ai" ? "AI Assistant" : "Customer"}
+            </span>
+            <p className="text-base mt-2">
+              {selectedSample.transcript[currentSegmentIndex]?.text || ""}
+            </p>
           </div>
-
-          {/* Hover indicator */}
-          <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 transition-colors" />
         </div>
 
-        {/* Time Display */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-          <span>{formatTime(currentTimeMs)}</span>
-          <span>{selectedSample.duration}</span>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Play/Pause */}
-          <Button
-            size="lg"
-            className={isPlaying ? "" : "gradient-bg border-0"}
-            variant={isPlaying ? "outline" : "default"}
-            onClick={handlePlayPause}
-            disabled={isLoading || !hasAudioFiles}
-          >
-            {isPlaying ? (
-              <>
-                <Pause className="mr-2 h-5 w-5" />
-                Pause
-              </>
-            ) : (
-              <>
-                <Play className="mr-2 h-5 w-5" />
-                {isLoading ? "Loading..." : hasAudioFiles ? "Play" : "No Audio"}
-              </>
-            )}
-          </Button>
-
-          {/* Reset */}
-          <Button variant="ghost" size="icon" onClick={handleReset} title="Reset">
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-
-          {/* Volume */}
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleMute} title={isMuted ? "Unmute" : "Mute"}>
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </Button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="w-20 h-1 accent-primary cursor-pointer"
-              title="Volume"
+        {/* Progress Bar + Controls */}
+        <div className="max-w-md mx-auto pt-6 border-t">
+          <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-100"
+              style={{ width: `${progress}%` }}
             />
           </div>
-
-          {/* Playback Speed */}
-          <div className="flex items-center gap-1 ml-auto">
-            {[0.75, 1, 1.25, 1.5].map((rate) => (
-              <button
-                key={rate}
-                onClick={() => handlePlaybackRateChange(rate)}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  playbackRate === rate
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted hover:bg-muted/80 text-muted-foreground"
-                }`}
-              >
-                {rate}x
-              </button>
-            ))}
+          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+            <span>{formatTime(currentTimeMs)}</span>
+            <span>{selectedSample.duration}</span>
           </div>
 
-          {/* Transcript Toggle */}
-          <Button
-            variant="ghost"
-            onClick={() => setShowTranscript(!showTranscript)}
-            className="gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            {showTranscript ? "Hide" : "Show"} Transcript
-            {showTranscript ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
-        </div>
-
-        {/* Current Speaker Indicator */}
-        {isPlaying && currentSegmentIndex >= 0 && (
-          <div className="mt-4 flex items-center gap-2 animate-fade-in">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                selectedSample.transcript[currentSegmentIndex].speaker === "ai"
-                  ? "gradient-bg"
-                  : "bg-muted"
-              }`}
+          {/* Play/Pause Button */}
+          <div className="flex justify-center items-center gap-3 mt-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleReset}
+              title="Reset"
+              className="h-10 w-10"
             >
-              {selectedSample.transcript[currentSegmentIndex].speaker === "ai" ? (
-                <Bot className="h-4 w-4 text-white" />
-              ) : (
-                <User className="h-4 w-4 text-muted-foreground" />
-              )}
-            </div>
-            <span className="text-sm font-medium">
-              {selectedSample.transcript[currentSegmentIndex].speaker === "ai"
-                ? "AI Speaking"
-                : "Customer Speaking"}
-            </span>
-            <div className="flex gap-1 ml-2">
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-            </div>
-          </div>
-        )}
+              <RotateCcw className="h-4 w-4" />
+            </Button>
 
-        {/* Transcript */}
-        {showTranscript && (
-          <div className="mt-6 pt-6 border-t space-y-4 animate-fade-in">
-            <h4 className="font-medium text-sm text-muted-foreground">Transcript</h4>
-            <div ref={transcriptRef} className="space-y-3 max-h-80 overflow-y-auto scroll-smooth">
-              {selectedSample.transcript.map((line, i) => {
-                const active = isLineActive(i);
-                const past = isLinePast(i);
-                return (
-                  <div
-                    key={i}
-                    className={`flex gap-3 transition-all duration-300 ${
-                      line.speaker === "ai" ? "" : "flex-row-reverse"
-                    } ${active ? "scale-[1.02]" : ""} ${past ? "opacity-60" : ""}`}
-                  >
-                    <div
-                      className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-full transition-all ${
-                        line.speaker === "ai"
-                          ? active
-                            ? "gradient-bg ring-2 ring-primary/30"
-                            : "bg-primary/10"
-                          : active
-                          ? "bg-muted ring-2 ring-muted-foreground/30"
-                          : "bg-muted/50"
-                      }`}
-                    >
-                      {line.speaker === "ai" ? (
-                        <Bot className={`h-4 w-4 ${active ? "text-white" : "text-primary"}`} />
-                      ) : (
-                        <User className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div
-                      className={`flex-1 text-sm p-3 rounded-lg transition-all ${
-                        line.speaker === "ai"
-                          ? active
-                            ? "bg-primary/10 ring-1 ring-primary/20"
-                            : "bg-muted/50"
-                          : active
-                          ? "bg-primary/15 ring-1 ring-primary/20 text-right"
-                          : "bg-primary/5 text-right"
-                      }`}
-                    >
-                      {line.text}
-                    </div>
-                    <div className="shrink-0 text-xs text-muted-foreground self-center w-10">
-                      {line.timestamp}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <Button
+              size="lg"
+              className={`h-12 px-6 rounded-full gap-2 ${isPlaying ? "" : "gradient-bg border-0"}`}
+              variant={isPlaying ? "outline" : "default"}
+              onClick={handlePlayPause}
+              disabled={isLoading || !hasAudioFiles}
+            >
+              {currentSpeaker === "ai" ? (
+                <Bot className="h-5 w-5" />
+              ) : (
+                <User className="h-5 w-5" />
+              )}
+              {isPlaying ? (
+                <Pause className="h-5 w-5" />
+              ) : (
+                <Play className="h-5 w-5" />
+              )}
+            </Button>
           </div>
-        )}
+
+          {/* Loading/No Audio State */}
+          {(isLoading || !hasAudioFiles) && (
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              {isLoading ? "Loading audio..." : "Audio files not available"}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Note */}

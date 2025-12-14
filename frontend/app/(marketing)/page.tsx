@@ -82,23 +82,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Trusted By Section */}
-      <section className="border-y bg-muted/20 py-12">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-sm text-muted-foreground mb-8">
-            Trusted by independent auto shops across the country
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-12 opacity-60">
-            {/* Placeholder logos - replace with actual logos */}
-            {["Mike's Auto", "City Garage", "Express Repair", "Pro Mechanics", "AutoCare Plus"].map((name) => (
-              <div key={name} className="text-lg font-semibold text-muted-foreground">
-                {name}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* How It Works Section */}
       <section className="py-24">
         <div className="container mx-auto px-4">

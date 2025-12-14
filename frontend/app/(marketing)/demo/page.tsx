@@ -1,17 +1,9 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Headphones, MessageSquare } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AudioPlayer } from "@/components/demo/audio-player";
-import { ChatSimulator } from "@/components/demo/chat-simulator";
-
-type TabType = "audio" | "interactive";
 
 export default function DemoPage() {
-  const [activeTab, setActiveTab] = useState<TabType>("interactive");
-
   return (
     <>
       {/* Hero */}
@@ -22,8 +14,7 @@ export default function DemoPage() {
             <span className="gradient-text">Voice AI</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground">
-            See how our AI receptionist handles real customer calls. Try the interactive
-            demo or listen to sample conversations.
+            Listen to how our AI receptionist handles real customer calls.
           </p>
         </div>
       </section>
@@ -31,43 +22,8 @@ export default function DemoPage() {
       {/* Demo Section */}
       <section className="pb-24">
         <div className="container mx-auto px-4">
-          {/* Tab Navigation */}
-          <div className="flex justify-center mb-12">
-            <div className="inline-flex rounded-xl border bg-muted/50 p-1">
-              <button
-                onClick={() => setActiveTab("interactive")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                  activeTab === "interactive"
-                    ? "bg-card shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <MessageSquare className="h-4 w-4" />
-                Interactive Demo
-              </button>
-              <button
-                onClick={() => setActiveTab("audio")}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
-                  activeTab === "audio"
-                    ? "bg-card shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Headphones className="h-4 w-4" />
-                Audio Samples
-              </button>
-            </div>
-          </div>
-
-          {/* Tab Content */}
-          <div className="animate-fade-in">
-            {activeTab === "interactive" ? (
-              <ChatSimulator />
-            ) : (
-              <div className="max-w-4xl mx-auto">
-                <AudioPlayer />
-              </div>
-            )}
+          <div className="max-w-4xl mx-auto animate-fade-in">
+            <AudioPlayer />
           </div>
         </div>
       </section>
@@ -118,7 +74,7 @@ export default function DemoPage() {
         </div>
       </section>
 
-      {/* Real Voice Note */}
+      {/* CTA */}
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl rounded-2xl border bg-card p-8 md:p-12 text-center">
@@ -126,9 +82,8 @@ export default function DemoPage() {
               Ready for the Real Thing?
             </h2>
             <p className="mt-4 text-muted-foreground">
-              This demo uses text-based simulation. The actual Voice AI uses natural
-              speech—customers call your number and have real conversations with the AI.
-              It sounds like this demo, but through a phone call.
+              These are actual AI-generated voices. Customers call your number and have
+              real conversations with the AI—just like what you heard above.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="lg" className="gradient-bg border-0 glow" asChild>
