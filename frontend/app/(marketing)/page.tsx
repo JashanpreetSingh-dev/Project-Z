@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight, Phone, Clock, Wrench, Zap, CheckCircle2, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Metadata } from "next";
-import { HowItWorksSection } from "@/components/marketing";
+import { HowItWorksSection, PoweredBySection, IntegrationsSection } from "@/components/marketing";
 import {
   ScrollReveal,
   StaggerContainer,
@@ -229,6 +229,12 @@ export default async function HomePage() {
           </StaggerContainer>
         </div>
       </section>
+
+      {/* Powered By Section */}
+      <PoweredBySection />
+
+      {/* Integrations Section */}
+      <IntegrationsSection />
 
       {/* Testimonials Section */}
       <section className="border-t bg-muted/30 py-24">

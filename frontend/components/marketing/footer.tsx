@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Zap } from "lucide-react";
+import { OpenAILogo, TwilioLogo } from "@/components/icons";
 
 const footerLinks = {
   product: [
@@ -88,8 +89,19 @@ export function MarketingFooter() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
+        {/* Powered By Strip */}
         <div className="mt-12 pt-8 border-t">
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">
+              Powered by
+            </span>
+            <OpenAILogo className="h-5 opacity-50 hover:opacity-100 transition-opacity" />
+            <TwilioLogo className="h-5 opacity-50 hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="mt-8 pt-8 border-t">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
               &copy; {new Date().getFullYear()} Voice AI. Built for auto shops.
