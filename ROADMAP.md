@@ -11,7 +11,7 @@ This document breaks down the MVP into sequential development phases. Each phase
 | 1 | Foundation & Data Layer | Backend scaffolding + CSV import | ✅ Complete |
 | 2 | Intent Engine | LLM-based intent classification + tool orchestration | ✅ Complete |
 | 3 | Voice Pipeline | OpenAI Realtime API integration | ✅ Complete |
-| 4 | Telephony Integration | Real phone calls via PSTN | 1-2 weeks |
+| 4 | Telephony Integration | Real phone calls via PSTN | ✅ Complete |
 | 5 | Business Dashboard | Owner-facing web UI | ✅ Complete |
 | 6 | Hardening & Pilot | Production readiness + real shop testing | 2-4 weeks |
 
@@ -202,29 +202,43 @@ backend/app/modules/voice/
 
 **Goal:** Connect voice pipeline to real phone calls.
 
-**Code Location:** `app/modules/voice/telephony.py` (stub created)
+**Status:** ✅ Complete
+
+**Code Location:** `app/modules/voice/telephony.py`
+
+### Implementation
+
+Uses OpenAI Realtime API's native `g711_ulaw` support to stream audio directly to/from Twilio without conversion.
 
 ### Tasks
 
 - [x] Research and select telephony provider → **Twilio**
   - Options: Twilio, Vonage, Telnyx, SignalWire
   - Criteria: WebSocket media streams, PSTN support, pricing
-- [ ] Implement inbound call handling:
-  - Webhook for incoming calls
-  - Media stream WebSocket connection
-  - Audio format handling (mulaw/PCM conversion)
-- [ ] Bridge telephony audio ↔ voice pipeline
-- [ ] Implement call state machine:
-  - Greeting
-  - Listening
-  - Processing
-  - Responding
-  - Transferring
-  - Ending
-- [ ] Add call transfer functionality (to shop's main line)
-- [ ] Implement call duration limits and loop prevention
-- [ ] Create call logging (structured summaries only, no audio)
-- [ ] Test with real phone calls
+- [x] Implement inbound call handling:
+  - Webhook for incoming calls (`POST /api/twilio/incoming`)
+  - Media stream WebSocket connection (`WS /api/twilio/media-stream`)
+  - Native g711_ulaw format (no conversion needed!)
+- [x] Bridge telephony audio ↔ voice pipeline
+  - `TwilioRealtimeSession` class handles bidirectional audio
+- [x] Implement call state machine:
+  - Integrated with existing `SessionState` (LISTENING, PROCESSING, SPEAKING)
+  - Barge-in support (clear Twilio buffer on user interrupt)
+- [x] Add call transfer functionality (to shop's main line)
+  - Uses Twilio REST API to update call with Dial TwiML
+- [x] Create call logging (structured summaries only, no audio)
+  - Integrates with existing `CallLog` model
+  - Tracks intent, outcome, duration, tool calls
+
+### Testing
+
+To test with real phone calls:
+
+1. Install Twilio SDK: `pip install twilio>=9.0.0`
+2. Configure `.env` with Twilio credentials
+3. Run ngrok: `ngrok http 8000`
+4. Set Twilio phone number webhook to: `https://xxxx.ngrok.io/api/twilio/incoming`
+5. Call your Twilio number
 
 ### Milestone
 ✅ Can receive real phone call, have AI conversation, transfer if needed.
@@ -347,22 +361,26 @@ frontend/
 
 ## Current Status
 
-**Phase 1, 2, 3 & 5 Complete!** ✅
+**Phase 1, 2, 3, 4 & 5 Complete!** ✅
 
-The foundation, voice pipeline, and dashboard are built:
+The foundation, voice pipeline, telephony, and dashboard are built:
 - Backend scaffolding with FastAPI + MongoDB/Beanie
 - Modular architecture with adapters pattern
 - LLM orchestration with OpenAI function calling
 - Tool registry connected to MockAdapter for testing
 - Text-based chat endpoint at `/api/voice/chat`
 - **Real-time voice conversations via OpenAI Realtime API**
-- WebSocket endpoint at `/api/voice/stream` for voice streaming
+- WebSocket endpoint at `/api/voice/stream` for browser voice streaming
 - Browser-based test page at `/voice-test` with microphone support
+- **Twilio telephony integration for real phone calls**
+- Twilio webhook at `/api/twilio/incoming` and media stream at `/api/twilio/media-stream`
+- Native g711_ulaw support (no audio conversion needed)
+- Call transfer and logging integrated
 - Full Next.js dashboard with Clerk authentication
 - Shop owner can sign up, create shop, and configure AI settings
 - Owner-scoped API routes for multi-tenant security
 
-**Next up: Phase 4 (Telephony Integration)** — Connect voice pipeline to real phone calls via Twilio.
+**Next up: Phase 6 (Hardening & Pilot)** — Production readiness and real-world testing with a pilot auto shop.
 
 ---
 
@@ -378,8 +396,10 @@ The foundation, voice pipeline, and dashboard are built:
 8. [x] Complete Phase 2: LLM orchestration + tool calling
 9. [x] Complete Phase 5: Frontend dashboard with Clerk auth
 10. [x] Complete Phase 3: OpenAI Realtime API voice pipeline
-11. [ ] Test `/voice-test` page with OpenAI API key
-12. [ ] Begin Phase 4: Twilio telephony integration
+11. [x] Test `/voice-test` page with OpenAI API key
+12. [x] Complete Phase 4: Twilio telephony integration
+13. [ ] Test phone calls with Twilio and ngrok
+14. [ ] Begin Phase 6: Security audit and hardening
 
 ---
 

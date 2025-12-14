@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
     twilio_phone_number: str = ""
+    twilio_webhook_base_url: str = ""  # e.g., "https://your-ngrok-url.ngrok.io"
+    default_transfer_number: str = ""  # Fallback if shop has no transfer number
 
     # Clerk Authentication
     clerk_secret_key: str = ""

@@ -16,6 +16,7 @@ from app.database import close_db, init_db
 from app.modules.calls.router import router as calls_router
 from app.modules.shops.router import router as shops_router
 from app.modules.voice.router import router as voice_router
+from app.modules.voice.telephony import router as twilio_router
 
 # Configure logging
 logging.basicConfig(
@@ -64,6 +65,7 @@ def create_app() -> FastAPI:
     app.include_router(shops_router, prefix="/api/shops", tags=["Shop Config"])
     app.include_router(calls_router, prefix="/api/calls", tags=["Call Logs"])
     app.include_router(voice_router, prefix="/api/voice", tags=["Voice AI"])
+    app.include_router(twilio_router, prefix="/api/twilio", tags=["Twilio Telephony"])
 
     # Static files for voice test page
     static_dir = Path(__file__).parent.parent / "static"
