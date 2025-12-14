@@ -1,5 +1,8 @@
 "use client";
 
+// Force dynamic rendering to prevent static generation with Clerk hooks
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Loader2, Phone, PhoneIncoming } from "lucide-react";

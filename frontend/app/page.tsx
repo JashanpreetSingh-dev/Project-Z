@@ -5,16 +5,14 @@ import { ArrowRight, Phone, Clock, Wrench, Zap, CheckCircle2 } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-// Check if Clerk is configured (for CI builds without secrets)
-const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+// Force dynamic rendering to prevent static generation with Clerk
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  // Skip auth check when Clerk is not configured (CI builds)
-  if (isClerkConfigured) {
-    const { userId } = await auth();
-    if (userId) {
-      redirect("/dashboard");
-    }
+  const { userId } = await auth();
+
+  if (userId) {
+    redirect("/dashboard");
   }
 
   return (

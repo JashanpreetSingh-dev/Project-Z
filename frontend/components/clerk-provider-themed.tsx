@@ -2,9 +2,6 @@
 
 import { ClerkProvider } from "@clerk/nextjs";
 
-// Check if Clerk is configured (for CI builds without secrets)
-const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
 const clerkAppearance = {
   variables: {
     colorPrimary: "hsl(262, 83%, 58%)",
@@ -59,11 +56,6 @@ const clerkAppearance = {
 };
 
 export function ClerkProviderThemed({ children }: { children: React.ReactNode }) {
-  // Skip Clerk in CI builds without the publishable key
-  if (!isClerkConfigured) {
-    return <>{children}</>;
-  }
-
   return (
     <ClerkProvider appearance={clerkAppearance}>
       {children}

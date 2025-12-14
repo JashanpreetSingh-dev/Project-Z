@@ -1,5 +1,8 @@
 "use client";
 
+// Force dynamic rendering to prevent static generation with Clerk hooks
+export const dynamic = "force-dynamic";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
