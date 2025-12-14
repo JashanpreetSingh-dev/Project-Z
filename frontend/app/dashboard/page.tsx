@@ -10,13 +10,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const [shop, setShop] = useState<ShopConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadShop() {
+      // Wait for Clerk to fully load before making API calls
+      if (!isLoaded) return;
+
       try {
         const token = await getToken();
         if (!token) return;
@@ -37,7 +40,7 @@ export default function DashboardPage() {
     }
 
     loadShop();
-  }, [getToken, router]);
+  }, [getToken, router, isLoaded]);
 
   if (isLoading) {
     return (
