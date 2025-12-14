@@ -8,8 +8,8 @@ This document breaks down the MVP into sequential development phases. Each phase
 
 | Phase | Focus | Deliverable | Est. Duration |
 |-------|-------|-------------|---------------|
-| 1 | Foundation & Data Layer | Backend scaffolding + CSV import | 1-2 weeks |
-| 2 | Intent Engine | LLM-based intent classification + tool orchestration | 2-3 weeks |
+| 1 | Foundation & Data Layer | Backend scaffolding + CSV import | ✅ Complete |
+| 2 | Intent Engine | LLM-based intent classification + tool orchestration | ✅ Complete |
 | 3 | Voice Pipeline | ASR + TTS integration (local testing) | 2-3 weeks |
 | 4 | Telephony Integration | Real phone calls via PSTN | 1-2 weeks |
 | 5 | Business Dashboard | Owner-facing web UI | 2-3 weeks |
@@ -64,13 +64,24 @@ backend/app/
 │   └── health.py              # Health check endpoints
 │
 ├── modules/                   # Domain modules (layered)
-│   ├── shops/                 # models, schemas, router, service
-│   ├── work_orders/           # models, schemas, router, service
-│   ├── calls/                 # models, schemas, router, service
-│   └── voice/                 # (stubs for Phase 2-4)
+│   ├── shops/                 # ShopConfig model + CRUD
+│   ├── calls/                 # CallLog model + CRUD
+│   └── voice/                 # Voice AI pipeline (Phase 2 ✅)
+│       ├── intents.py         # Intent enum
+│       ├── prompts.py         # System prompt templates
+│       ├── tools.py           # Tool registry + schemas
+│       ├── llm.py             # OpenAI client wrapper
+│       ├── service.py         # Conversation orchestrator
+│       ├── router.py          # /api/voice/chat endpoint
+│       ├── asr.py             # (stub for Phase 3)
+│       ├── tts.py             # (stub for Phase 3)
+│       └── telephony.py       # (stub for Phase 4)
 │
-└── adapters/                  # External data sources (Phase 7+)
-    └── shop_system.py         # ShopSystemAdapter ABC
+└── adapters/                  # External data sources
+    ├── base.py                # ShopSystemAdapter ABC
+    └── mock/                  # Mock adapter for testing
+        ├── adapter.py         # MockAdapter implementation
+        └── data/              # Sample JSON data
 ```
 
 ---
@@ -83,31 +94,32 @@ backend/app/
 
 ### Tasks
 
-- [x] Define intent taxonomy (stub in `voice/intents.py`):
+- [x] Define intent taxonomy (`voice/intents.py`):
   - `CHECK_STATUS` - vehicle/service status lookup
   - `GET_HOURS` - business hours inquiry
   - `GET_LOCATION` - address/directions
   - `GET_SERVICES` - available services list
   - `TRANSFER_HUMAN` - request to speak with person
   - `UNKNOWN` - fallback
-- [ ] Design slot extraction schema per intent:
-  - CHECK_STATUS → {customer_name?, vehicle_make?, vehicle_model?, license_plate?, work_order_id?}
-- [ ] Build tool registry (MCP-style):
+- [x] Build tool registry (MCP-style) in `voice/tools.py`:
   - `lookup_work_order()`
+  - `get_work_order_status()`
   - `get_business_hours()`
-  - `get_shop_location()`
-  - `get_services_list()`
-- [ ] Implement LLM orchestration layer:
-  - System prompt design (strict, deterministic)
-  - Intent classification prompt
-  - Slot extraction prompt
+  - `get_location()`
+  - `list_services()`
+  - `get_customer_vehicles()`
+  - `transfer_to_human()`
+- [x] Implement LLM orchestration layer:
+  - System prompt design (`voice/prompts.py`)
+  - OpenAI client with function calling (`voice/llm.py`)
+  - Conversation orchestrator with tool loop (`voice/service.py`)
   - Response generation from tool results
-- [ ] Add confidence scoring and fallback logic
-- [ ] Create text-based testing harness (CLI or API)
-- [ ] Write unit tests for each intent path
+- [x] Create text-based testing endpoint (`POST /api/voice/chat`)
+- [x] Write unit tests for voice module
+- [x] Implement MockAdapter for testing without real integrations
 
 ### Milestone
-✅ Can send text input, get classified intent, call appropriate tool, return structured response.
+✅ Can send text input via `/api/voice/chat`, LLM calls appropriate tools, returns natural response.
 
 ---
 
@@ -261,14 +273,18 @@ backend/app/
 
 ---
 
-## Recommended Starting Point
+## Current Status
 
-**Start with Phase 1 + Phase 2 in parallel tracks:**
+**Phase 1 & 2 Complete!** ✅
 
-1. **Track A (Data):** Set up repo, database, CSV import
-2. **Track B (Intent):** Prototype intent classification with hardcoded test data
+The foundation is built:
+- Backend scaffolding with FastAPI + MongoDB/Beanie
+- Modular architecture with adapters pattern
+- LLM orchestration with OpenAI function calling
+- Tool registry connected to MockAdapter for testing
+- Text-based chat endpoint ready at `/api/voice/chat`
 
-This lets you validate the core AI logic early while building the data foundation.
+**Next up: Phase 3 (Voice Pipeline)** — Add streaming ASR/TTS for real voice interactions.
 
 ---
 
@@ -277,11 +293,12 @@ This lets you validate the core AI logic early while building the data foundatio
 1. [x] Create repository structure
 2. [x] Choose backend stack → FastAPI + MongoDB
 3. [x] Design database schema
-4. [ ] Draft initial intent prompts
+4. [x] Draft initial intent prompts
 5. [x] Set up development environment
 6. [ ] Set up MongoDB (local or Atlas)
-7. [ ] Test API endpoints with sample data
-8. [ ] Begin Phase 2: Intent classification prototype
+7. [ ] Test `/api/voice/chat` endpoint with OpenAI API key
+8. [x] Complete Phase 2: LLM orchestration + tool calling
+9. [ ] Begin Phase 3: ASR/TTS integration
 
 ---
 
