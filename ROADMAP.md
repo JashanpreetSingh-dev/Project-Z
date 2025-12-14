@@ -12,7 +12,7 @@ This document breaks down the MVP into sequential development phases. Each phase
 | 2 | Intent Engine | LLM-based intent classification + tool orchestration | ✅ Complete |
 | 3 | Voice Pipeline | ASR + TTS integration (local testing) | 2-3 weeks |
 | 4 | Telephony Integration | Real phone calls via PSTN | 1-2 weeks |
-| 5 | Business Dashboard | Owner-facing web UI | 2-3 weeks |
+| 5 | Business Dashboard | Owner-facing web UI | ✅ Complete |
 | 6 | Hardening & Pilot | Production readiness + real shop testing | 2-4 weeks |
 
 **MVP Total: 10-17 weeks**
@@ -59,6 +59,7 @@ backend/app/
 ├── database.py                # MongoDB/Beanie initialization
 │
 ├── common/                    # Shared utilities
+│   ├── auth.py                # Clerk JWT middleware (Phase 5 ✅)
 │   ├── utils.py               # utc_now(), helpers
 │   ├── exceptions.py          # NotFoundError, ConflictError, etc.
 │   └── health.py              # Health check endpoints
@@ -192,25 +193,52 @@ backend/app/
 
 **Goal:** Build owner-facing web interface for management and visibility.
 
+**Status:** ✅ Complete (pulled forward before Phase 3)
+
 ### Tasks
 
-- [ ] Choose frontend framework (e.g., Next.js, React)
-- [ ] Design and implement authentication:
-  - Shop owner login
-  - Multi-shop support (future-ready)
-- [ ] Build dashboard pages:
-  - **Overview**: Call volume, success rate, common intents
-  - **Call Log**: List of calls with summaries, intents, outcomes
-  - **Call Detail**: Individual call breakdown
-  - **Shop Settings**: Hours, services, address, phone
-  - **AI Controls**: Toggle what AI can/cannot answer
-- [ ] Implement CSV upload UI for work orders
-- [ ] Add real-time call activity indicators (optional)
-- [ ] Mobile-responsive design
-- [ ] Basic analytics charts
+- [x] Choose frontend framework → **Next.js 14 (App Router)**
+- [x] Design and implement authentication → **Clerk**
+  - Shop owner signup/login
+  - JWT-based API authentication
+  - Owner-scoped routes (`/api/shops/me`, `/api/calls/me`)
+- [x] Build dashboard pages:
+  - **Overview**: Shop status, AI toggle, greeting preview
+  - **Call Log**: List of calls with intents, outcomes, duration
+  - **Shop Settings**: Name, phone, greeting, transfer number, AI controls
+- [x] Onboarding flow for new users (shop creation)
+- [x] shadcn/ui component library integration
+- [x] Mobile-responsive design with Tailwind CSS
+- [ ] CSV upload UI for work orders (deferred)
+- [ ] Real-time call activity indicators (deferred)
+- [ ] Analytics charts (deferred)
+
+### Frontend Structure
+
+```
+frontend/
+├── app/
+│   ├── layout.tsx              # ClerkProvider
+│   ├── page.tsx                # Landing page
+│   ├── sign-in/[[...sign-in]]/ # Clerk sign-in
+│   ├── sign-up/[[...sign-up]]/ # Clerk sign-up
+│   ├── onboarding/             # Shop creation
+│   └── dashboard/
+│       ├── layout.tsx          # Sidebar layout
+│       ├── page.tsx            # Overview
+│       ├── settings/           # Shop config
+│       └── calls/              # Call history
+├── components/
+│   ├── ui/                     # shadcn/ui components
+│   └── dashboard/              # Sidebar, etc.
+├── lib/
+│   ├── api.ts                  # Backend API client
+│   └── utils.ts                # Helpers
+└── middleware.ts               # Clerk auth middleware
+```
 
 ### Milestone
-✅ Shop owner can log in, view calls, edit business info, upload work orders.
+✅ Shop owner can sign up, create shop, configure settings, and view call history.
 
 ---
 
@@ -256,7 +284,9 @@ backend/app/
 | **ASR** | Deepgram | Fastest streaming, phone-optimized |
 | **TTS** | Deepgram Aura / ElevenLabs | Low latency streaming |
 | **Telephony** | Twilio | Best documentation, media streams |
-| **Frontend** | Next.js | Full-stack dashboard |
+| **Frontend** | Next.js 14 (App Router) | Full-stack dashboard, React Server Components |
+| **Auth** | Clerk | Managed auth, easy JWT integration |
+| **UI Components** | shadcn/ui + Tailwind | Modern, accessible, customizable |
 | **CI/CD** | GitHub Actions + Ruff + Pyrefly | Linting, type checking, testing |
 
 ---
@@ -275,14 +305,17 @@ backend/app/
 
 ## Current Status
 
-**Phase 1 & 2 Complete!** ✅
+**Phase 1, 2 & 5 Complete!** ✅
 
-The foundation is built:
+The foundation and dashboard are built:
 - Backend scaffolding with FastAPI + MongoDB/Beanie
 - Modular architecture with adapters pattern
 - LLM orchestration with OpenAI function calling
 - Tool registry connected to MockAdapter for testing
 - Text-based chat endpoint ready at `/api/voice/chat`
+- Full Next.js dashboard with Clerk authentication
+- Shop owner can sign up, create shop, and configure AI settings
+- Owner-scoped API routes for multi-tenant security
 
 **Next up: Phase 3 (Voice Pipeline)** — Add streaming ASR/TTS for real voice interactions.
 
@@ -298,7 +331,8 @@ The foundation is built:
 6. [ ] Set up MongoDB (local or Atlas)
 7. [ ] Test `/api/voice/chat` endpoint with OpenAI API key
 8. [x] Complete Phase 2: LLM orchestration + tool calling
-9. [ ] Begin Phase 3: ASR/TTS integration
+9. [x] Complete Phase 5: Frontend dashboard with Clerk auth
+10. [ ] Begin Phase 3: ASR/TTS integration
 
 ---
 

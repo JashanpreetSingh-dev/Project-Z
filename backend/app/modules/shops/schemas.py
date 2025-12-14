@@ -1,8 +1,9 @@
 """Request/response schemas for shop configuration."""
 
 from datetime import datetime
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.modules.shops.models import AdapterCredentials, AdapterType, ShopSettings
 
@@ -34,7 +35,10 @@ class ShopConfigUpdate(BaseModel):
 class ShopConfigResponse(BaseModel):
     """Schema for shop configuration response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
+    owner_id: str
     name: str
     phone: str
 
@@ -44,3 +48,9 @@ class ShopConfigResponse(BaseModel):
     settings: ShopSettings
     created_at: datetime
     updated_at: datetime
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def convert_objectid(cls, v: Any) -> str:
+        """Convert MongoDB ObjectId to string."""
+        return str(v)

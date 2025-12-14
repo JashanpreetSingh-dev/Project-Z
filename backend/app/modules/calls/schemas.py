@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.modules.calls.models import CallIntent, CallOutcome
 
@@ -30,6 +30,8 @@ class CallLogCreate(BaseModel):
 class CallLogResponse(BaseModel):
     """Schema for call log response."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     shop_id: str
     work_order_id: str | None
@@ -46,3 +48,9 @@ class CallLogResponse(BaseModel):
     fallback_used: bool
     transfer_reason: str | None
     metadata: dict[str, Any]
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def convert_objectid(cls, v: Any) -> str:
+        """Convert MongoDB ObjectId to string."""
+        return str(v)

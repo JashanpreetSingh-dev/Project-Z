@@ -48,7 +48,16 @@ class AdapterCredentials(BaseModel):
 
 
 class ShopConfig(Document):
-    """Shop configuration - which adapter to use and how to connect."""
+    """Shop configuration - which adapter to use and how to connect.
+
+    Note: Currently 1 user = 1 shop (MVP). Future expansion planned for:
+    - Multiple shops per user
+    - Role-based access control (RBAC)
+    - Team members with different permission levels
+    """
+
+    # Ownership (Clerk user ID)
+    owner_id: Indexed(str) = Field(..., description="Clerk user ID who owns this shop")  # type: ignore[valid-type]
 
     # Identification
     name: str = Field(..., description="Shop display name")
