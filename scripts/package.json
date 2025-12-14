@@ -1,0 +1,17 @@
+{
+  "name": "voice-receptionist-scripts",
+  "version": "1.0.0",
+  "description": "Utility scripts for Voice Receptionist project",
+  "scripts": {
+    "generate-audio": "ts-node generate-demo-audio.ts"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "openai": "^4.73.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

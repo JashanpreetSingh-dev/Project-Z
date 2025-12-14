@@ -1,0 +1,140 @@
+{
+  "status-check": [
+    {
+      "index": 0,
+      "speaker": "ai",
+      "text": "Hi, thanks for calling Mike's Auto Shop! I'm the virtual assistant. How can I help you today?",
+      "audioFile": "/audio/status-check/00.mp3"
+    },
+    {
+      "index": 1,
+      "speaker": "customer",
+      "text": "Hi, I'm calling to check on my car. It's a Honda Civic.",
+      "audioFile": "/audio/status-check/01.mp3"
+    },
+    {
+      "index": 2,
+      "speaker": "ai",
+      "text": "Of course! I can look that up for you. Can I get your last name or phone number?",
+      "audioFile": "/audio/status-check/02.mp3"
+    },
+    {
+      "index": 3,
+      "speaker": "customer",
+      "text": "Johnson. Sarah Johnson.",
+      "audioFile": "/audio/status-check/03.mp3"
+    },
+    {
+      "index": 4,
+      "speaker": "ai",
+      "text": "Thank you, Sarah. I found your Honda Civic. Let me check the status... Great news! Your car is ready for pickup. The brake pad replacement has been completed and the vehicle has been road tested.",
+      "audioFile": "/audio/status-check/04.mp3"
+    },
+    {
+      "index": 5,
+      "speaker": "customer",
+      "text": "Oh wonderful! What time can I pick it up?",
+      "audioFile": "/audio/status-check/05.mp3"
+    },
+    {
+      "index": 6,
+      "speaker": "ai",
+      "text": "We're open until 6 PM today. You can come by anytime before then. Is there anything else I can help you with?",
+      "audioFile": "/audio/status-check/06.mp3"
+    },
+    {
+      "index": 7,
+      "speaker": "customer",
+      "text": "No, that's all. Thanks!",
+      "audioFile": "/audio/status-check/07.mp3"
+    },
+    {
+      "index": 8,
+      "speaker": "ai",
+      "text": "You're welcome! We'll see you soon. Have a great day!",
+      "audioFile": "/audio/status-check/08.mp3"
+    }
+  ],
+  "hours-location": [
+    {
+      "index": 0,
+      "speaker": "ai",
+      "text": "Hi, thanks for calling Mike's Auto Shop! I'm the virtual assistant. How can I help you today?",
+      "audioFile": "/audio/hours-location/00.mp3"
+    },
+    {
+      "index": 1,
+      "speaker": "customer",
+      "text": "What time do you guys open tomorrow?",
+      "audioFile": "/audio/hours-location/01.mp3"
+    },
+    {
+      "index": 2,
+      "speaker": "ai",
+      "text": "We're open Monday through Friday from 8 AM to 6 PM, and Saturdays from 9 AM to 3 PM. We're closed on Sundays.",
+      "audioFile": "/audio/hours-location/02.mp3"
+    },
+    {
+      "index": 3,
+      "speaker": "customer",
+      "text": "And where are you located?",
+      "audioFile": "/audio/hours-location/03.mp3"
+    },
+    {
+      "index": 4,
+      "speaker": "ai",
+      "text": "We're at 1234 Main Street, right across from the Safeway grocery store. There's free parking in our lot behind the building.",
+      "audioFile": "/audio/hours-location/04.mp3"
+    },
+    {
+      "index": 5,
+      "speaker": "customer",
+      "text": "Perfect, thanks!",
+      "audioFile": "/audio/hours-location/05.mp3"
+    },
+    {
+      "index": 6,
+      "speaker": "ai",
+      "text": "You're welcome! We look forward to seeing you. Have a great day!",
+      "audioFile": "/audio/hours-location/06.mp3"
+    }
+  ],
+  "transfer-request": [
+    {
+      "index": 0,
+      "speaker": "ai",
+      "text": "Hi, thanks for calling Mike's Auto Shop! I'm the virtual assistant. How can I help you today?",
+      "audioFile": "/audio/transfer-request/00.mp3"
+    },
+    {
+      "index": 1,
+      "speaker": "customer",
+      "text": "Yeah, I have a question about the transmission work you quoted me. I want to understand what parts are being replaced.",
+      "audioFile": "/audio/transfer-request/01.mp3"
+    },
+    {
+      "index": 2,
+      "speaker": "ai",
+      "text": "I'd be happy to help. That sounds like a detailed technical question that one of our mechanics would be best suited to answer. Would you like me to transfer you to our service team?",
+      "audioFile": "/audio/transfer-request/02.mp3"
+    },
+    {
+      "index": 3,
+      "speaker": "customer",
+      "text": "Yes please.",
+      "audioFile": "/audio/transfer-request/03.mp3"
+    },
+    {
+      "index": 4,
+      "speaker": "ai",
+      "text": "Of course. I'll transfer you now to Mike, our lead technician. He can walk you through the details of your transmission repair. One moment please.",
+      "audioFile": "/audio/transfer-request/04.mp3"
+    },
+    {
+      "index": 5,
+      "speaker": "customer",
+      "text": "Thank you.",
+      "audioFile": "/audio/transfer-request/05.mp3"
+    }
+  ]
+}
