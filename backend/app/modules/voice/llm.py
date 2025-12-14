@@ -120,18 +120,22 @@ class LLMClient:
                 # Execute the tool
                 tool_result = await tool_executor(tool_name, tool_args)
 
-                tool_calls_made.append({
-                    "tool": tool_name,
-                    "args": tool_args,
-                    "result": tool_result,
-                })
+                tool_calls_made.append(
+                    {
+                        "tool": tool_name,
+                        "args": tool_args,
+                        "result": tool_result,
+                    }
+                )
 
                 # Add tool result to messages
-                working_messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "content": json.dumps(tool_result),
-                })
+                working_messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps(tool_result),
+                    }
+                )
 
         # If we hit max iterations, get final response without tools
         logger.warning("Hit max tool iterations (%d), forcing final response", max_iterations)
