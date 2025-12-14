@@ -1,5 +1,6 @@
 """FastAPI application entry point."""
 
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -11,15 +12,26 @@ from app.config import get_settings
 from app.database import close_db, init_db
 from app.modules.calls.router import router as calls_router
 from app.modules.shops.router import router as shops_router
+from app.modules.voice.router import router as voice_router
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan handler for startup/shutdown."""
     # Startup
+    logger.info("Starting Voice Receptionist API...")
     await init_db()
+    logger.info("Application started successfully")
     yield
     # Shutdown
+    logger.info("Shutting down...")
     await close_db()
 
 
@@ -48,9 +60,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router, tags=["Health"])
     app.include_router(shops_router, prefix="/api/shops", tags=["Shop Config"])
     app.include_router(calls_router, prefix="/api/calls", tags=["Call Logs"])
-
-    # Note: Work orders are NOT exposed via REST API
-    # They are fetched via adapters during voice calls
+    app.include_router(voice_router, prefix="/api/voice", tags=["Voice AI"])
 
     return app
 

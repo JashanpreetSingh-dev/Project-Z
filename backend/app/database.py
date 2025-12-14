@@ -1,5 +1,7 @@
 """MongoDB database connection and initialization."""
 
+import logging
+
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -7,10 +9,14 @@ from app.config import get_settings
 from app.modules.calls.models import CallLog
 from app.modules.shops.models import ShopConfig
 
+logger = logging.getLogger(__name__)
+
 
 async def init_db() -> None:
     """Initialize database connection and Beanie ODM."""
     settings = get_settings()
+
+    logger.info("Connecting to MongoDB at %s...", settings.mongodb_url.split("@")[-1])
 
     # Create Motor client
     client: AsyncIOMotorClient = AsyncIOMotorClient(settings.mongodb_url)
@@ -24,6 +30,8 @@ async def init_db() -> None:
             CallLog,  # AI call interaction logs
         ],
     )
+
+    logger.info("Connected to MongoDB database: %s", settings.database_name)
 
 
 async def close_db() -> None:
