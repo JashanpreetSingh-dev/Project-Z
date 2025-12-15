@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ArrowRight, Phone, Clock, Wrench, Play } from "lucide-react";
+import { ArrowRight, Phone, Clock, Wrench, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Metadata } from "next";
 import { HeroSection, HowItWorksSection, IntegrationsSection } from "@/components/marketing";
+import { AudioPlayer } from "@/components/demo/audio-player";
 import {
   ScrollReveal,
-  ScaleReveal,
   AnimatedCounter,
   BlurReveal,
+  MagneticButton,
+  FadeBlur,
 } from "@/components/animations";
 
 export const metadata: Metadata = {
@@ -96,16 +98,6 @@ export default async function HomePage() {
             </BlurReveal>
           </div>
 
-          <ScrollReveal delay={0.3}>
-            <div className="mt-12 text-center">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground" asChild>
-                <Link href="/features">
-                  View all features
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </ScrollReveal>
         </div>
       </section>
 
@@ -139,33 +131,142 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Demo CTA Section */}
-      <section className="py-16 lg:py-20">
+      {/* Demo Section */}
+      <section id="demo" className="border-t py-24 lg:py-32">
         <div className="container mx-auto px-4">
-          <ScaleReveal>
-            <div className="mx-auto max-w-3xl rounded-2xl border bg-card p-8 md:p-12 text-center">
-              <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-xl gradient-bg">
-                <Play className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold sm:text-3xl">
-                Hear it in action
-              </h2>
-              <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-                Listen to real AI conversations and see how it handles customer calls.
+          <ScrollReveal>
+            <div className="mx-auto max-w-2xl text-center mb-12">
+              <p className="section-eyebrow">Demo</p>
+              <h2 className="heading-section">Hear it in action</h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Listen to how our AI receptionist handles real calls.
               </p>
-              <Button size="lg" variant="outline" className="mt-6" asChild>
-                <Link href="/demo">
-                  Try the Demo
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
             </div>
-          </ScaleReveal>
+          </ScrollReveal>
+
+          <FadeBlur delay={0.3}>
+            <div className="max-w-4xl mx-auto">
+              <AudioPlayer />
+            </div>
+          </FadeBlur>
         </div>
       </section>
 
       {/* Integrations Section */}
       <IntegrationsSection />
+
+      {/* Pricing Section */}
+      <section id="pricing" className="border-t py-24 lg:py-32">
+        <div className="container mx-auto px-4">
+          <ScrollReveal>
+            <div className="mx-auto max-w-2xl text-center mb-12">
+              <p className="section-eyebrow">Pricing</p>
+              <h2 className="heading-section">Simple, transparent pricing</h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Start free. No hidden fees, no contracts.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+            {/* Starter Plan */}
+            <BlurReveal delay={0.1} blurAmount={6}>
+              <div className="relative rounded-xl border bg-card p-6 h-full">
+                <div>
+                  <h3 className="text-lg font-semibold">Starter</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    For small shops getting started
+                  </p>
+                  <div className="mt-5">
+                    <span className="text-3xl font-bold">$49</span>
+                    <span className="text-muted-foreground text-sm">/month</span>
+                  </div>
+                </div>
+                <ul className="mt-6 space-y-2.5">
+                  {["Up to 100 calls/month", "AI phone receptionist", "Repair status lookups", "Business hours & location", "Call summaries"].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5">
+                      <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-6">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href="/sign-up">Start Free Trial</Link>
+                  </Button>
+                </div>
+              </div>
+            </BlurReveal>
+
+            {/* Professional Plan */}
+            <BlurReveal delay={0.2} blurAmount={6}>
+              <div className="relative rounded-xl border border-primary ring-1 ring-primary/20 bg-card p-6 h-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="gradient-bg text-white text-xs font-medium px-3 py-1 rounded-full">
+                    Popular
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Professional</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    For busy shops with high volume
+                  </p>
+                  <div className="mt-5">
+                    <span className="text-3xl font-bold">$99</span>
+                    <span className="text-muted-foreground text-sm">/month</span>
+                  </div>
+                </div>
+                <ul className="mt-6 space-y-2.5">
+                  {["Up to 500 calls/month", "Everything in Starter", "Smart call transfers", "Custom greetings", "Analytics dashboard", "Priority support"].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5">
+                      <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-6">
+                  <MagneticButton strength={0.15} className="w-full">
+                    <Button className="w-full btn-primary-glow" asChild>
+                      <Link href="/sign-up">
+                        Start Free Trial
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </MagneticButton>
+                </div>
+              </div>
+            </BlurReveal>
+
+            {/* Enterprise Plan */}
+            <BlurReveal delay={0.3} blurAmount={6}>
+              <div className="relative rounded-xl border bg-card p-6 h-full">
+                <div>
+                  <h3 className="text-lg font-semibold">Enterprise</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    For multi-location shops
+                  </p>
+                  <div className="mt-5">
+                    <span className="text-3xl font-bold">Custom</span>
+                  </div>
+                </div>
+                <ul className="mt-6 space-y-2.5">
+                  {["Unlimited calls", "Everything in Professional", "Shop integrations", "Dedicated manager", "Custom AI training", "SLA guarantee"].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5">
+                      <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-6">
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href="/contact">Contact Sales</Link>
+                  </Button>
+                </div>
+              </div>
+            </BlurReveal>
+          </div>
+        </div>
+      </section>
 
       {/* Testimonials Section */}
       <section className="border-t bg-muted/20 py-24 lg:py-32">

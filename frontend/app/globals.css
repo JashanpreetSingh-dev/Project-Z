@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Slate-Blue Light Theme - Timeless & Trust-focused */
+    /* Light Theme - Clean with vibrant accents */
     --background: 0 0% 100%;
     --foreground: 220 15% 10%;
 
@@ -14,9 +14,13 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 10%;
 
-    /* Deep Slate-Blue Primary */
-    --primary: 215 25% 27%;
+    /* Vibrant Blue Primary */
+    --primary: 220 90% 50%;
     --primary-foreground: 0 0% 100%;
+
+    /* Gradient colors for highlights */
+    --gradient-from: 220 90% 55%;
+    --gradient-to: 260 85% 60%;
 
     --secondary: 220 14% 96%;
     --secondary-foreground: 220 15% 10%;
@@ -31,7 +35,7 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Subtle Green Accent */
-    --success: 152 45% 42%;
+    --success: 152 55% 42%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -39,13 +43,13 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 215 25% 27%;
+    --ring: 220 90% 50%;
 
     --radius: 0.625rem;
   }
 
   .dark {
-    /* Slate-Blue Dark Theme - Deep & Professional */
+    /* Dark Theme - Deep with vibrant accents */
     --background: 220 15% 8%;
     --foreground: 210 20% 95%;
 
@@ -55,9 +59,13 @@
     --popover: 220 15% 10%;
     --popover-foreground: 210 20% 95%;
 
-    /* Slate-Blue Primary (lighter for dark mode) */
-    --primary: 215 30% 55%;
+    /* Vibrant Blue Primary */
+    --primary: 220 85% 60%;
     --primary-foreground: 220 15% 8%;
+
+    /* Gradient colors for highlights */
+    --gradient-from: 220 85% 60%;
+    --gradient-to: 270 80% 65%;
 
     --secondary: 220 15% 15%;
     --secondary-foreground: 210 20% 95%;
@@ -72,7 +80,7 @@
     --destructive-foreground: 210 20% 95%;
 
     /* Subtle Green Accent */
-    --success: 152 45% 42%;
+    --success: 152 55% 45%;
     --success-foreground: 210 20% 95%;
 
     --warning: 38 92% 50%;
@@ -80,7 +88,7 @@
 
     --border: 220 15% 20%;
     --input: 220 15% 20%;
-    --ring: 215 30% 55%;
+    --ring: 220 85% 60%;
   }
 }
 
@@ -100,14 +108,23 @@
 }
 
 @layer utilities {
-  /* Primary Text - replaces gradient-text for cleaner look */
+  /* Gradient Text - vibrant blue to purple */
   .gradient-text {
-    @apply text-primary;
+    @apply bg-clip-text text-transparent bg-gradient-to-r;
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--gradient-from)) 0%,
+      hsl(var(--gradient-to)) 100%
+    );
   }
 
-  /* Primary Background - replaces gradient-bg for cleaner look */
+  /* Gradient Background */
   .gradient-bg {
-    @apply bg-primary;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-from)) 0%,
+      hsl(var(--gradient-to)) 100%
+    );
   }
 
   /* Subtle gradient background */
@@ -124,13 +141,13 @@
     @apply bg-card/50 backdrop-blur-xl border border-border/50;
   }
 
-  /* Glow Effect - subtle for slate theme */
+  /* Glow Effect */
   .glow {
-    box-shadow: 0 0 40px -10px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 40px -10px hsl(var(--gradient-from) / 0.4);
   }
 
   .glow-sm {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 20px -5px hsl(var(--gradient-from) / 0.3);
   }
 
   /* Primary Border */
@@ -176,25 +193,34 @@
 }
 
 @layer components {
-  /* Primary CTA - High prominence */
+  /* Primary CTA - High prominence with gradient */
   .btn-primary-glow {
-    @apply bg-primary text-primary-foreground font-semibold;
-    @apply hover:bg-primary/90 hover:scale-[1.02];
+    @apply text-white font-semibold;
+    @apply hover:scale-[1.02];
     @apply active:scale-[0.98];
     @apply transition-all duration-200;
-    box-shadow: 0 4px 14px -3px hsl(var(--primary) / 0.4);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-from)) 0%,
+      hsl(var(--gradient-to)) 100%
+    );
+    box-shadow: 0 4px 20px -3px hsl(var(--gradient-from) / 0.5);
   }
 
   .btn-primary-glow:hover {
-    box-shadow: 0 6px 20px -3px hsl(var(--primary) / 0.5);
+    box-shadow: 0 6px 30px -3px hsl(var(--gradient-from) / 0.6);
   }
 
   /* Modern Button Styles */
   .btn-gradient {
-    @apply bg-primary text-primary-foreground font-medium;
-    @apply hover:bg-primary/90;
+    @apply text-white font-medium;
     @apply transition-all duration-200;
-    box-shadow: 0 4px 14px -3px hsl(var(--primary) / 0.3);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-from)) 0%,
+      hsl(var(--gradient-to)) 100%
+    );
+    box-shadow: 0 4px 14px -3px hsl(var(--gradient-from) / 0.4);
   }
 
   /* Status indicators */
@@ -292,10 +318,10 @@
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 15px -5px hsl(var(--primary) / 0.2);
+    box-shadow: 0 0 15px -5px hsl(var(--gradient-from) / 0.3);
   }
   50% {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 25px -5px hsl(var(--gradient-from) / 0.5);
   }
 }
 

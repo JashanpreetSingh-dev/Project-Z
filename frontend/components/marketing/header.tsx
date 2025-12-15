@@ -1,22 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Zap, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Features", href: "/features" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "Demo", href: "/demo" },
+  { label: "Features", href: "/#features" },
+  { label: "Demo", href: "/#demo" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 export function MarketingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
@@ -36,10 +33,7 @@ export function MarketingHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "nav-link",
-                  pathname === item.href && "nav-link-active"
-                )}
+                className="nav-link"
               >
                 {item.label}
               </Link>
@@ -82,12 +76,7 @@ export function MarketingHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn(
-                    "px-3 py-2.5 text-sm font-medium rounded-lg transition-colors",
-                    pathname === item.href 
-                      ? "bg-muted text-foreground" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
+                  className="px-3 py-2.5 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}

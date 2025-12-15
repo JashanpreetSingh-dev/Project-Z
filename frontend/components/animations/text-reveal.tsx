@@ -118,6 +118,19 @@ export function TextRevealByChar({
   );
 }
 
+interface GradientTextProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function GradientText({ children, className = "" }: GradientTextProps) {
+  return (
+    <span className={`gradient-text ${className}`}>
+      {children}
+    </span>
+  );
+}
+
 interface GradientTextRevealProps {
   children: ReactNode;
   className?: string;

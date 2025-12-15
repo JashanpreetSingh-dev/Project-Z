@@ -10,6 +10,7 @@ export { AnimatedCounter, AnimatedTextCounter } from "./animated-counter";
 export {
   TextReveal,
   TextRevealByChar,
+  GradientText,
   GradientTextReveal,
 } from "./text-reveal";
 
