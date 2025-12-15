@@ -133,6 +133,23 @@ export interface CallLog {
   metadata: Record<string, unknown>;
 }
 
+export interface DailyCallCount {
+  date: string;
+  count: number;
+}
+
+export interface CallAnalytics {
+  period_start: string;
+  period_end: string;
+  total_calls: number;
+  avg_duration_seconds: number | null;
+  calls_by_day: DailyCallCount[];
+  outcomes: Record<string, number>;
+  resolution_rate: number;
+  intents: Record<string, number>;
+  calls_by_hour: Record<string, number>;
+}
+
 export const callsAPI = {
   /**
    * Get call logs for the current user's shop
@@ -145,4 +162,10 @@ export const callsAPI = {
    */
   getCall: (callId: string, token: string): Promise<CallLog> =>
     fetchAPI<CallLog>(`/api/calls/me/${callId}`, {}, token),
+
+  /**
+   * Get call analytics for the current user's shop
+   */
+  getAnalytics: (token: string, days = 30): Promise<CallAnalytics> =>
+    fetchAPI<CallAnalytics>(`/api/calls/me/analytics?days=${days}`, {}, token),
 };

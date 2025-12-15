@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { LayoutDashboard, Phone, Settings, Zap, LogOut, ChevronUp } from "lucide-react";
+import { LayoutDashboard, Phone, BarChart3, Settings, Zap, LogOut, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -26,6 +26,11 @@ const navItems = [
     href: "/dashboard/calls",
     label: "Call History",
     icon: Phone,
+  },
+  {
+    href: "/dashboard/analytics",
+    label: "Analytics",
+    icon: BarChart3,
   },
   {
     href: "/dashboard/settings",

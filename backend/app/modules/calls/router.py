@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from app.common.auth import AuthenticatedUser, get_current_user
 from app.modules.calls import service
 from app.modules.calls.models import CallLog
-from app.modules.calls.schemas import CallLogCreate, CallLogResponse
+from app.modules.calls.schemas import CallAnalytics, CallLogCreate, CallLogResponse
 from app.modules.shops import service as shop_service
 
 router = APIRouter()
@@ -31,6 +31,30 @@ async def list_my_call_logs(
         return []
 
     return await service.get_call_logs(str(shop.id), limit)
+
+
+@router.get("/me/analytics", response_model=CallAnalytics)
+async def get_my_analytics(
+    user: Annotated[AuthenticatedUser, Depends(get_current_user)],
+    days: int = Query(30, ge=7, le=90, description="Number of days to analyze"),
+) -> CallAnalytics:
+    """Get call analytics for the current user's shop.
+
+    Returns aggregated metrics including:
+    - Total calls and average duration
+    - Calls by day (for volume charts)
+    - Outcome breakdown (resolved, transferred, etc.)
+    - Intent breakdown (what callers are asking about)
+    - Calls by hour (peak hours analysis)
+    """
+    shop = await shop_service.get_shop_config_by_owner(user.user_id)
+    if not shop:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="You don't have a shop configured",
+        )
+
+    return await service.get_call_analytics(str(shop.id), days)
 
 
 @router.get("/me/{call_id}", response_model=CallLogResponse)

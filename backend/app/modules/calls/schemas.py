@@ -54,3 +54,32 @@ class CallLogResponse(BaseModel):
     def convert_objectid(cls, v: Any) -> str:
         """Convert MongoDB ObjectId to string."""
         return str(v)
+
+
+class DailyCallCount(BaseModel):
+    """Daily call count for analytics charts."""
+
+    date: str  # ISO date string (YYYY-MM-DD)
+    count: int
+
+
+class CallAnalytics(BaseModel):
+    """Aggregated call analytics for a shop."""
+
+    period_start: datetime
+    period_end: datetime
+    total_calls: int
+    avg_duration_seconds: float | None
+
+    # Volume over time (for charts)
+    calls_by_day: list[DailyCallCount]
+
+    # Outcome breakdown
+    outcomes: dict[str, int]
+    resolution_rate: float  # Percentage of calls resolved by AI (0-100)
+
+    # Intent breakdown
+    intents: dict[str, int]
+
+    # Peak hours (hour 0-23 -> count)
+    calls_by_hour: dict[str, int]
