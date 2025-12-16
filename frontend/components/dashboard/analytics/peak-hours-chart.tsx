@@ -80,3 +80,4 @@ export function PeakHoursChart({ data }: PeakHoursChartProps) {
     </ChartContainer>
   );
 }
+

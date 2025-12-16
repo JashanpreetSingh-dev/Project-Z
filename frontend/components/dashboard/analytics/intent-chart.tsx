@@ -84,3 +84,4 @@ export function IntentChart({ data }: IntentChartProps) {
     </ChartContainer>
   );
 }
+

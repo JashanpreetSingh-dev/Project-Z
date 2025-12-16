@@ -6,6 +6,7 @@ from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import get_settings
+from app.modules.billing.models import Subscription, UsageRecord
 from app.modules.calls.models import CallLog
 from app.modules.shops.models import ShopConfig
 
@@ -28,6 +29,8 @@ async def init_db() -> None:
         document_models=[
             ShopConfig,  # Shop configuration and adapter settings
             CallLog,  # AI call interaction logs
+            Subscription,  # Billing subscriptions
+            UsageRecord,  # Usage tracking per period
         ],
     )
 

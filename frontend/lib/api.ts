@@ -169,3 +169,93 @@ export const callsAPI = {
   getAnalytics: (token: string, days = 30): Promise<CallAnalytics> =>
     fetchAPI<CallAnalytics>(`/api/calls/me/analytics?days=${days}`, {}, token),
 };
+
+// ============================================
+// Billing API
+// ============================================
+
+export type PlanTier = "free" | "starter" | "professional" | "enterprise";
+export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing";
+
+export interface UsageInfo {
+  call_count: number;
+  call_limit: number | null;
+  period_start: string;
+  period_end: string;
+  percentage_used: number;
+}
+
+export interface SubscriptionInfo {
+  plan_tier: PlanTier;
+  plan_name: string;
+  status: SubscriptionStatus;
+  price_monthly: number;
+  usage: UsageInfo;
+  stripe_customer_id: string | null;
+  current_period_start: string;
+  current_period_end: string;
+}
+
+export interface QuotaStatus {
+  allowed: boolean;
+  calls_remaining: number | null;
+  plan_tier: PlanTier;
+  upgrade_required: boolean;
+}
+
+export interface CheckoutResponse {
+  checkout_url: string;
+}
+
+export interface PortalResponse {
+  portal_url: string;
+}
+
+export const billingAPI = {
+  /**
+   * Get current subscription and usage
+   */
+  getSubscription: (token: string): Promise<SubscriptionInfo> =>
+    fetchAPI<SubscriptionInfo>("/api/billing/subscription", {}, token),
+
+  /**
+   * Check quota status
+   */
+  getQuota: (token: string): Promise<QuotaStatus> =>
+    fetchAPI<QuotaStatus>("/api/billing/quota", {}, token),
+
+  /**
+   * Create checkout session for upgrading
+   */
+  createCheckout: (
+    planTier: PlanTier,
+    successUrl: string,
+    cancelUrl: string,
+    token: string
+  ): Promise<CheckoutResponse> =>
+    fetchAPI<CheckoutResponse>(
+      "/api/billing/checkout",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          plan_tier: planTier,
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+        }),
+      },
+      token
+    ),
+
+  /**
+   * Create customer portal session
+   */
+  createPortal: (returnUrl: string, token: string): Promise<PortalResponse> =>
+    fetchAPI<PortalResponse>(
+      "/api/billing/portal",
+      {
+        method: "POST",
+        body: JSON.stringify({ return_url: returnUrl }),
+      },
+      token
+    ),
+};

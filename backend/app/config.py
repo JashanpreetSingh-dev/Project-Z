@@ -39,6 +39,13 @@ class Settings(BaseSettings):
     clerk_secret_key: str = ""
     clerk_publishable_key: str = ""
 
+    # Stripe Billing
+    stripe_secret_key: str = ""
+    stripe_publishable_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_starter_price_id: str = ""
+    stripe_pro_price_id: str = ""
+
     # App Settings
     debug: bool = False
     log_level: str = "INFO"

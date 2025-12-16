@@ -162,3 +162,4 @@ export function ScaleReveal({
     </motion.div>
   );
 }
+

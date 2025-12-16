@@ -1,6 +1,6 @@
 """Business logic for call logging."""
 
-from datetime import datetime, timedelta, timezone, UTC
+from datetime import UTC, datetime, timedelta
 
 from beanie import PydanticObjectId
 
@@ -68,9 +68,7 @@ async def get_call_analytics(shop_id: str, days: int = 30) -> CallAnalytics:
     end_date = now.date()
     while current_date <= end_date:
         date_str = current_date.strftime("%Y-%m-%d")
-        calls_by_day.append(
-            DailyCallCount(date=date_str, count=calls_by_day_dict.get(date_str, 0))
-        )
+        calls_by_day.append(DailyCallCount(date=date_str, count=calls_by_day_dict.get(date_str, 0)))
         current_date += timedelta(days=1)
 
     # Count outcomes

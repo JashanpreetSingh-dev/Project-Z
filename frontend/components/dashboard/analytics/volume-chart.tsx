@@ -80,3 +80,4 @@ export function VolumeChart({ data }: VolumeChartProps) {
     </ChartContainer>
   );
 }
+

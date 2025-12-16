@@ -14,6 +14,7 @@ from typing import Any
 from fastapi import APIRouter, Request, Response, WebSocket, WebSocketDisconnect
 
 from app.config import get_settings
+from app.modules.billing.service import check_quota, increment_usage
 from app.modules.calls.models import CallIntent, CallLog, CallOutcome
 from app.modules.shops.models import ShopConfig
 from app.modules.shops.service import get_shop_config_by_phone
@@ -301,7 +302,7 @@ class TwilioRealtimeSession(RealtimeSession):
     # -------------------------------------------------------------------------
 
     async def _log_call(self, duration: int) -> None:
-        """Save call record to database."""
+        """Save call record to database and increment usage."""
         # Determine outcome
         if self._should_transfer:
             outcome = CallOutcome.TRANSFERRED
@@ -311,6 +312,14 @@ class TwilioRealtimeSession(RealtimeSession):
             outcome = CallOutcome.RESOLVED
         else:
             outcome = CallOutcome.ABANDONED
+
+        # Increment usage counter for billing
+        if self.shop_id:
+            try:
+                await increment_usage(self.shop_id)
+                logger.debug("Usage incremented for shop %s", self.shop_id)
+            except Exception as e:
+                logger.error("Failed to increment usage for shop %s: %s", self.shop_id, e)
 
         try:
             call_log = CallLog(
@@ -344,11 +353,27 @@ class TwilioRealtimeSession(RealtimeSession):
 # =============================================================================
 
 
+def _quota_exceeded_response(shop_name: str) -> Response:
+    """Generate TwiML response when quota is exceeded."""
+    from twilio.twiml.voice_response import VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+    response = VoiceResponse()
+    response.say(
+        f"Thank you for calling {shop_name}. "
+        "We're experiencing high call volume and cannot take your call right now. "
+        "Please try again later or visit our website for more information. Goodbye.",
+        voice="Polly.Joanna",
+    )
+    response.hangup()
+    return Response(content=str(response), media_type="application/xml")
+
+
 @router.post("/incoming")
 async def handle_incoming_call(request: Request) -> Response:
     """Handle incoming Twilio call webhook.
 
     Returns TwiML instructing Twilio to open a bidirectional media stream.
+    Checks quota before accepting the call.
     """
     from twilio.twiml.voice_response import Connect, Stream, VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
 
@@ -358,6 +383,30 @@ async def handle_incoming_call(request: Request) -> Response:
     to_number = form.get("To", "unknown")
 
     logger.info("Incoming call: sid=%s from=%s to=%s", call_sid, from_number, to_number)
+
+    # Look up shop by phone number to check quota
+    shop_config = await get_shop_config_by_phone(str(to_number))
+
+    if shop_config and shop_config.id:
+        shop_id = str(shop_config.id)
+        shop_name = shop_config.name
+
+        # Check quota before accepting call
+        try:
+            quota = await check_quota(shop_id)
+            if not quota.allowed:
+                logger.warning(
+                    "Quota exceeded for shop %s (%s), rejecting call %s",
+                    shop_name,
+                    shop_id,
+                    call_sid,
+                )
+                return _quota_exceeded_response(shop_name)
+        except Exception as e:
+            # If quota check fails, allow the call (fail open for better UX)
+            logger.error("Quota check failed for shop %s: %s", shop_id, e)
+    else:
+        shop_name = "our business"
 
     # Build WebSocket URL
     base_url = _settings.twilio_webhook_base_url

@@ -13,6 +13,7 @@ This document breaks down the MVP into sequential development phases. Each phase
 | 3 | Voice Pipeline | OpenAI Realtime API integration | ✅ Complete |
 | 4 | Telephony Integration | Real phone calls via PSTN | ✅ Complete |
 | 5 | Business Dashboard | Owner-facing web UI | ✅ Complete |
+| 5.5 | Billing & Subscriptions | Stripe integration + usage tracking | ✅ Complete |
 | 6 | Hardening & Pilot | Production readiness + real shop testing | 2-4 weeks |
 
 **MVP Total: 10-17 weeks**
@@ -299,6 +300,61 @@ frontend/
 
 ---
 
+## Phase 5.5: Billing & Subscriptions
+
+**Goal:** Implement Stripe-based billing with freemium tier, usage tracking, and quota enforcement.
+
+**Status:** ✅ Complete
+
+### Pricing Tiers
+
+| Tier | Price | Calls/Month |
+|------|-------|-------------|
+| Free | $0 | 10 |
+| Starter | $49 | 100 |
+| Professional | $99 | 500 |
+| Enterprise | Custom | Unlimited |
+
+### Tasks
+
+- [x] Add Stripe configuration to backend settings
+- [x] Create `Subscription` and `UsageRecord` database models
+- [x] Implement billing service with Stripe integration:
+  - Checkout session creation
+  - Customer portal session
+  - Webhook handling (subscription lifecycle events)
+- [x] Create billing API endpoints:
+  - `GET /api/billing/subscription` - Get subscription + usage
+  - `POST /api/billing/checkout` - Create checkout session
+  - `POST /api/billing/portal` - Create portal session
+  - `POST /api/billing/webhook` - Handle Stripe webhooks
+- [x] Add usage tracking to call flow (increment on call completion)
+- [x] Implement quota enforcement in telephony handler:
+  - Check quota before accepting calls
+  - Return friendly message when limit reached
+- [x] Build billing dashboard page:
+  - Current plan display with usage meter
+  - Upgrade/downgrade buttons
+  - Stripe customer portal link
+- [x] Add upgrade prompts to dashboard when nearing/at limit
+
+### Billing Module Structure
+
+```
+backend/app/modules/billing/
+├── __init__.py
+├── constants.py     # Plan limits and pricing
+├── models.py        # Subscription, UsageRecord
+├── schemas.py       # API request/response schemas
+├── service.py       # Stripe integration + billing logic
+└── router.py        # API endpoints
+```
+
+### Milestone
+✅ Freemium billing with Stripe subscriptions, usage tracking, and quota enforcement.
+
+---
+
 ## Phase 6: Hardening & Pilot
 
 **Goal:** Prepare for production and run real-world pilot.
@@ -362,9 +418,9 @@ frontend/
 
 ## Current Status
 
-**Phase 1, 2, 3, 4 & 5 Complete!** ✅
+**Phase 1, 2, 3, 4, 5 & 5.5 Complete!** ✅
 
-The foundation, voice pipeline, telephony, and dashboard are built:
+The foundation, voice pipeline, telephony, dashboard, and billing are built:
 - Backend scaffolding with FastAPI + MongoDB/Beanie
 - Modular architecture with adapters pattern
 - LLM orchestration with OpenAI function calling
@@ -380,6 +436,10 @@ The foundation, voice pipeline, telephony, and dashboard are built:
 - Full Next.js dashboard with Clerk authentication
 - Shop owner can sign up, create shop, and configure AI settings
 - Owner-scoped API routes for multi-tenant security
+- **Stripe billing integration with subscription management**
+- Usage tracking per billing period with quota enforcement
+- Freemium model (10 free calls/month) with paid tiers
+- Billing dashboard with upgrade flow and customer portal
 
 **Next up: Phase 6 (Hardening & Pilot)** — Production readiness and real-world testing with a pilot auto shop.
 
