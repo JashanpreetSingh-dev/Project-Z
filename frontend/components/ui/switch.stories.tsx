@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from "@storybook/react";
+import { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { Switch } from "./switch";
 import { Label } from "./label";
 import { useState } from "react";

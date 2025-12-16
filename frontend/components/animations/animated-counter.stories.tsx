@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from "@storybook/react";
+import { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { AnimatedCounter, AnimatedTextCounter } from "./animated-counter";
 
 const meta = {

@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from "@storybook/react";
+import { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { GradientBackground } from "./gradient-background";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 

@@ -1,4 +1,4 @@
-import { Meta, StoryObj } from "@storybook/react";
+import { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { MagneticButton, HoverScale, GlowButtonWrapper } from "./magnetic-button";
 import { Button } from "../ui/button";
 
