@@ -414,9 +414,17 @@ async def _handle_checkout_completed(data: dict[str, Any]) -> None:
             _ = subscription.current_period_end
         except AttributeError:
             subscription.current_period_end = utc_now() + timedelta(days=30)
-        # Now set the actual values
-        subscription.current_period_start = datetime.fromtimestamp(stripe_sub.current_period_start)
-        subscription.current_period_end = datetime.fromtimestamp(stripe_sub.current_period_end)
+        # Now set the actual values using setattr to satisfy type checker
+        setattr(
+            subscription,
+            "current_period_start",
+            datetime.fromtimestamp(stripe_sub.current_period_start),  # type: ignore[attr-defined]
+        )
+        setattr(
+            subscription,
+            "current_period_end",
+            datetime.fromtimestamp(stripe_sub.current_period_end),  # type: ignore[attr-defined]
+        )
         subscription.updated_at = utc_now()
         await subscription.save()
 

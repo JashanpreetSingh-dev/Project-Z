@@ -76,27 +76,33 @@ class TestTwilioWebhooks:
     @pytest.mark.asyncio
     async def test_incoming_call_returns_twiml(self):
         """Test incoming call webhook returns valid TwiML."""
+        from unittest.mock import AsyncMock, patch
+
         from fastapi.testclient import TestClient
 
         from app.main import app
 
-        client = TestClient(app)
+        # Mock get_shop_config_by_phone to avoid database initialization
+        with patch("app.modules.voice.telephony.get_shop_config_by_phone", new_callable=AsyncMock) as mock_get_shop:
+            mock_get_shop.return_value = None  # No shop config found
 
-        response = client.post(
-            "/api/twilio/incoming",
-            data={
-                "CallSid": "CA123",
-                "From": "+15551234567",
-                "To": "+15559876543",
-            },
-        )
+            client = TestClient(app)
 
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "application/xml"
-        assert "<Response>" in response.text
-        assert "<Connect>" in response.text
-        assert "<Stream" in response.text
-        assert "callSid" in response.text
+            response = client.post(
+                "/api/twilio/incoming",
+                data={
+                    "CallSid": "CA123",
+                    "From": "+15551234567",
+                    "To": "+15559876543",
+                },
+            )
+
+            assert response.status_code == 200
+            assert response.headers["content-type"] == "application/xml"
+            assert "<Response>" in response.text
+            assert "<Connect>" in response.text
+            assert "<Stream" in response.text
+            assert "callSid" in response.text
 
     @pytest.mark.asyncio
     async def test_status_webhook(self):

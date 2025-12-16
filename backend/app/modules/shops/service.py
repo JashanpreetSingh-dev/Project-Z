@@ -66,11 +66,12 @@ async def get_shop_config_by_phone(phone: str) -> ShopConfig | None:
     """Get a shop configuration by phone number (for call routing).
 
     Tries multiple phone formats to handle different storage conventions.
+    Uses dictionary-style queries to avoid issues with Indexed field access.
     """
     normalized = normalize_phone(phone)
 
     # Try exact match first (E.164 format)
-    shop = await ShopConfig.find_one(ShopConfig.phone == normalized)
+    shop = await ShopConfig.find_one({"phone": normalized})
     if shop:
         return shop
 
@@ -78,12 +79,12 @@ async def get_shop_config_by_phone(phone: str) -> ShopConfig | None:
     digits_only = "".join(c for c in phone if c.isdigit())
     if len(digits_only) >= 10:
         last_10 = digits_only[-10:]
-        shop = await ShopConfig.find_one(ShopConfig.phone == last_10)
+        shop = await ShopConfig.find_one({"phone": last_10})
         if shop:
             return shop
 
     # Try with just the digits
-    shop = await ShopConfig.find_one(ShopConfig.phone == digits_only)
+    shop = await ShopConfig.find_one({"phone": digits_only})
     return shop
 
 
