@@ -83,7 +83,9 @@ class TestTwilioWebhooks:
         from app.main import app
 
         # Mock get_shop_config_by_phone to avoid database initialization
-        with patch("app.modules.voice.telephony.get_shop_config_by_phone", new_callable=AsyncMock) as mock_get_shop:
+        with patch(
+            "app.modules.voice.telephony.get_shop_config_by_phone", new_callable=AsyncMock
+        ) as mock_get_shop:
             mock_get_shop.return_value = None  # No shop config found
 
             client = TestClient(app)
