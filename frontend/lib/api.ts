@@ -49,6 +49,8 @@ export interface ShopSettings {
   allowed_intents: string[];
   greeting_message: string;
   max_call_duration_seconds: number;
+  sms_call_summary_enabled: boolean;
+  sms_from_number: string | null;
 }
 
 export interface ShopConfig {
@@ -258,4 +260,37 @@ export const billingAPI = {
       },
       token
     ),
+};
+
+// ============================================
+// Customer Context API
+// ============================================
+
+export interface InteractionRecord {
+  channel: "voice" | "sms";
+  timestamp: string;
+  intent: string | null;
+  summary: string | null;
+  outcome: string | null;
+}
+
+export interface CustomerContext {
+  id: string;
+  phone_number: string;
+  shop_id: string;
+  last_interaction: string;
+  interactions: InteractionRecord[];
+  known_info: {
+    name?: string | null;
+    vehicles?: Array<{ make?: string; model?: string; year?: number }>;
+    active_work_orders?: string[];
+  };
+}
+
+export const contextAPI = {
+  /**
+   * Get customer context by phone number
+   */
+  getCustomerContext: (phoneNumber: string, token: string): Promise<CustomerContext> =>
+    fetchAPI<CustomerContext>(`/api/context/customer/${encodeURIComponent(phoneNumber)}`, {}, token),
 };

@@ -16,8 +16,10 @@ from fastapi import APIRouter, Request, Response, WebSocket, WebSocketDisconnect
 from app.config import get_settings
 from app.modules.billing.service import check_quota, increment_usage
 from app.modules.calls.models import CallIntent, CallLog, CallOutcome
+from app.modules.context.service import update_context_from_call, update_context_from_sms
 from app.modules.shops.models import ShopConfig
-from app.modules.shops.service import get_shop_config_by_phone
+from app.modules.shops.service import get_shop_config_by_id, get_shop_config_by_phone
+from app.modules.sms.service import SmsService
 from app.modules.voice.prompts import get_system_prompt
 from app.modules.voice.realtime import RealtimeEventType
 from app.modules.voice.realtime_session import RealtimeSession, SessionState
@@ -98,6 +100,7 @@ class TwilioRealtimeSession(RealtimeSession):
         self._transfer_reason: str | None = None
         self._detected_intent: CallIntent = CallIntent.UNKNOWN
         self._transcripts: list[dict[str, str]] = []
+        self._sms_sent = False  # Track if SMS has been sent to prevent duplicates
 
     @property
     def shop_id(self) -> str | None:
@@ -217,7 +220,13 @@ class TwilioRealtimeSession(RealtimeSession):
 
         elif event == "start":
             self.stream_sid = message.get("start", {}).get("streamSid")
-            await self.start()
+            try:
+                await self.start()
+            except Exception as e:
+                logger.exception("Failed to start session for call %s: %s", self.call_sid, e)
+                # Set error state but don't raise - allow WebSocket to stay connected
+                # The call will continue but won't process audio
+                await self._set_state(SessionState.ERROR)
 
         elif event == "media":
             # Forward audio directly to OpenAI (mulaw -> mulaw, no conversion)
@@ -344,6 +353,47 @@ class TwilioRealtimeSession(RealtimeSession):
             )
             await call_log.insert()
             logger.info("Call logged: %s", self.call_sid)
+
+            # Update customer context (async, non-blocking)
+            try:
+                await update_context_from_call(call_log)
+            except Exception as e:
+                logger.exception("Failed to update context from call: %s", e)
+
+            # Send SMS summary if enabled and call was resolved (async, non-blocking)
+            # Guard against duplicate sends
+            if (
+                outcome == CallOutcome.RESOLVED
+                and self.shop_id
+                and self.from_number
+                and not self._sms_sent
+            ):
+                try:
+                    shop_config = await get_shop_config_by_id(self.shop_id)
+                    if shop_config and shop_config.settings.sms_call_summary_enabled:
+                        sms_service = SmsService()
+                        # Generate summary for context (before adding opt-out message)
+                        summary = sms_service.generate_call_summary(call_log, shop_config)
+                        # Send SMS (this handles opt-out check and adds opt-out message)
+                        sms_sent = await sms_service.send_call_summary(
+                            call_log,
+                            shop_config,
+                            from_number=shop_config.settings.sms_from_number,
+                        )
+                        if sms_sent:
+                            self._sms_sent = True  # Mark as sent to prevent duplicates
+                            logger.info("SMS summary sent for call %s", self.call_sid)
+                            # Update context with SMS (use original summary without opt-out message)
+                            await update_context_from_sms(
+                                self.from_number,
+                                self.shop_id,
+                                summary,
+                            )
+                        else:
+                            logger.debug("SMS not sent for call %s (opted out or error)", self.call_sid)
+                except Exception as e:
+                    logger.exception("Failed to send SMS summary: %s", e)
+
         except Exception as e:
             logger.exception("Failed to log call %s: %s", self.call_sid, e)
 
@@ -470,7 +520,12 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
 
             # Forward all messages to session
             if session:
-                await session.handle_twilio_message(message)
+                try:
+                    await session.handle_twilio_message(message)
+                except Exception as e:
+                    logger.exception("Error handling Twilio message: %s", e)
+                    # Don't let individual message errors disconnect the call
+                    # Continue processing other messages
 
     except WebSocketDisconnect:
         logger.info("Twilio media stream disconnected")

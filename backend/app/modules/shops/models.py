@@ -36,6 +36,12 @@ class ShopSettings(BaseModel):
     max_call_duration_seconds: int = Field(
         default=300, description="Max call duration before auto-transfer"
     )
+    sms_call_summary_enabled: bool = Field(
+        default=False, description="Enable SMS call summaries (opt-in)"
+    )
+    sms_from_number: str | None = Field(
+        default=None, description="SMS sender number override (defaults to shop's Twilio number)"
+    )
 
 
 class AdapterCredentials(BaseModel):

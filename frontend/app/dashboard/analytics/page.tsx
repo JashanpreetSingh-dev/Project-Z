@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
 
       {/* Stat Cards */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="hover-lift">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Calls
@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover-lift">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Resolution Rate
@@ -164,7 +164,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="hover-lift">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Avg Duration
@@ -264,6 +264,7 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+
 
 
 

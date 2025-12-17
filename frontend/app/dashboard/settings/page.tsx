@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
-import { Check, Loader2, Settings, MessageSquare, Phone, Timer } from "lucide-react";
+import { Check, Loader2, Settings, MessageSquare, Phone, Timer, Smartphone } from "lucide-react";
 import { shopAPI, type ShopConfig, type ShopConfigUpdate } from "@/lib/api";
 import { formatPhoneInput, formatPhoneDisplay } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export default function SettingsPage() {
     transfer_number: "",
     ai_enabled: true,
     max_call_duration_seconds: 300,
+    sms_call_summary_enabled: false,
   });
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export default function SettingsPage() {
           transfer_number: formatPhoneDisplay(shopData.settings.transfer_number || ""),
           ai_enabled: shopData.settings.ai_enabled,
           max_call_duration_seconds: shopData.settings.max_call_duration_seconds,
+          sms_call_summary_enabled: shopData.settings.sms_call_summary_enabled || false,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load shop");
@@ -109,6 +111,7 @@ export default function SettingsPage() {
           transfer_number: formData.transfer_number || null,
           ai_enabled: formData.ai_enabled,
           max_call_duration_seconds: formData.max_call_duration_seconds,
+          sms_call_summary_enabled: formData.sms_call_summary_enabled,
           allowed_intents: shop?.settings.allowed_intents || [],
         },
       };
@@ -149,7 +152,7 @@ export default function SettingsPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
-        <Card className="hover-lift">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary/10 p-2">
@@ -196,7 +199,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* AI Toggle */}
-        <Card className="hover-lift">
+        <Card>
           <CardContent className="flex items-center justify-between p-6">
             <div className="flex items-center gap-4">
               <div
@@ -228,8 +231,48 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* SMS Call Summary Toggle */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Smartphone className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle>SMS Call Summaries</CardTitle>
+                <CardDescription>Send customers brief summaries after resolved calls</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="font-medium">Enable SMS Call Summaries</p>
+                <p className="text-sm text-muted-foreground">
+                  Customers will receive a brief SMS summary after the AI successfully resolves their call.
+                  Only sent for resolved calls, not transfers or abandoned calls.
+                </p>
+              </div>
+              <Switch
+                checked={formData.sms_call_summary_enabled}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, sms_call_summary_enabled: checked })
+                }
+              />
+            </div>
+            {formData.sms_call_summary_enabled && (
+              <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4 text-sm">
+                <p className="text-blue-600 dark:text-blue-400">
+                  💡 SMS summaries will be sent automatically after each AI-resolved call. 
+                  Customers can opt out by replying &quot;STOP&quot; to any SMS.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Greeting */}
-        <Card className="hover-lift">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary/10 p-2">
@@ -258,7 +301,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* Call Settings */}
-        <Card className="hover-lift">
+        <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-primary/10 p-2">

@@ -94,16 +94,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, <span className="gradient-text">{shop.name}</span>
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Here&apos;s what&apos;s happening with your AI receptionist
-        </p>
+    <div className="overflow-hidden flex flex-col animate-fade-in -m-8" style={{ height: '100vh', maxHeight: '100vh' }}>
+      {/* Header - Sticky */}
+      <div className="sticky top-0 z-20 bg-background flex-shrink-0 px-6 pt-6 pb-4 border-b">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome back, <span className="gradient-text">{shop.name}</span>
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Here&apos;s what&apos;s happening with your AI receptionist
+          </p>
+        </div>
       </div>
+
+      {/* Content Area - Scrollable */}
+      <div className="flex-1 flex flex-col overflow-hidden px-6 py-6 min-h-0" style={{ paddingLeft: '2rem', paddingRight: '2rem', paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
+        <div className="flex-1 overflow-y-auto min-h-0 space-y-8">
 
       {/* Upgrade Prompt */}
       {showUpgradePrompt && (
@@ -135,7 +141,7 @@ export default function DashboardPage() {
       {/* Status Cards */}
       <div className="grid gap-6 md:grid-cols-3 stagger-children">
         {/* AI Status Card */}
-        <Card className="hover-lift">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               AI Status
@@ -164,7 +170,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Phone Number Card */}
-        <Card className="hover-lift">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Phone Number
@@ -182,7 +188,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Usage Card */}
-        <Card className="hover-lift">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Calls This Month
@@ -280,6 +286,8 @@ export default function DashboardPage() {
           </Button>
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>
   );
 }

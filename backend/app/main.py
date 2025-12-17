@@ -15,7 +15,9 @@ from app.config import get_settings
 from app.database import close_db, init_db
 from app.modules.billing.router import router as billing_router
 from app.modules.calls.router import router as calls_router
+from app.modules.context.router import router as context_router
 from app.modules.shops.router import router as shops_router
+from app.modules.sms.router import router as sms_router
 from app.modules.voice.router import router as voice_router
 from app.modules.voice.telephony import router as twilio_router
 
@@ -68,6 +70,8 @@ def create_app() -> FastAPI:
     app.include_router(voice_router, prefix="/api/voice", tags=["Voice AI"])
     app.include_router(twilio_router, prefix="/api/twilio", tags=["Twilio Telephony"])
     app.include_router(billing_router, prefix="/api/billing", tags=["Billing"])
+    app.include_router(context_router, prefix="/api/context", tags=["Customer Context"])
+    app.include_router(sms_router, prefix="/api/sms", tags=["SMS"])
 
     # Static files for voice test page
     static_dir = Path(__file__).parent.parent / "static"

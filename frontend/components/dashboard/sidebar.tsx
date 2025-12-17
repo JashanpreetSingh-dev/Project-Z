@@ -82,7 +82,7 @@ export function Sidebar() {
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-3 transition-all duration-200",
-                isActive && "bg-primary/10 text-primary hover:bg-primary/15"
+                isActive && "bg-primary/10 text-primary"
               )}
               asChild
             >

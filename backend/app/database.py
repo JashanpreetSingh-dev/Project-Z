@@ -8,7 +8,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from app.config import get_settings
 from app.modules.billing.models import Subscription, UsageRecord
 from app.modules.calls.models import CallLog
+from app.modules.context.models import CustomerContext
 from app.modules.shops.models import ShopConfig
+from app.modules.sms.models import SmsOptOut
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,8 @@ async def init_db() -> None:
             CallLog,  # AI call interaction logs
             Subscription,  # Billing subscriptions
             UsageRecord,  # Usage tracking per period
+            CustomerContext,  # Cross-channel customer interaction history
+            SmsOptOut,  # SMS opt-out tracking
         ],
     )
 

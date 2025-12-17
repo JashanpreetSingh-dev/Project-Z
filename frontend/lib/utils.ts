@@ -9,29 +9,66 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format a date for display
+ * Format a date for display (converts UTC to local browser time)
+ * Assumes input dates are in UTC and converts them to the browser's local timezone
  */
 export function formatDate(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleDateString("en-US", {
+  let d: Date;
+  if (typeof date === "string") {
+    // Parse the date string - if it doesn't have timezone info, treat as UTC
+    const dateStr = date.trim();
+    // Check if it already has timezone info (Z or +/-offset)
+    if (dateStr.endsWith("Z") || dateStr.match(/[+-]\d{2}:\d{2}$/)) {
+      d = new Date(dateStr);
+    } else {
+      // No timezone info - assume UTC and append Z
+      d = new Date(dateStr + "Z");
+    }
+  } else {
+    d = date;
+  }
+  
+  // Use Intl.DateTimeFormat to explicitly format in local timezone
+  const formatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
+  return formatter.format(d);
 }
 
 /**
- * Format a date with time
+ * Format a date with time (converts UTC to local browser time)
+ * Assumes input dates are in UTC and converts them to the browser's local timezone
  */
 export function formatDateTime(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  return d.toLocaleString("en-US", {
+  let d: Date;
+  if (typeof date === "string") {
+    // Parse the date string - if it doesn't have timezone info, treat as UTC
+    const dateStr = date.trim();
+    // Check if it already has timezone info (Z or +/-offset)
+    if (dateStr.endsWith("Z") || dateStr.match(/[+-]\d{2}:\d{2}$/)) {
+      d = new Date(dateStr);
+    } else {
+      // No timezone info - assume UTC and append Z
+      d = new Date(dateStr + "Z");
+    }
+  } else {
+    d = date;
+  }
+  
+  // Use Intl.DateTimeFormat to explicitly format in local timezone
+  const formatter = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   });
+  return formatter.format(d);
 }
 
 /**
@@ -93,4 +130,55 @@ export function formatPhoneInput(value: string): string {
  */
 export function parsePhoneDigits(phone: string): string {
   return phone.replace(/\D/g, "");
+}
+
+/**
+ * Format relative time (e.g., "2 hours ago", "Yesterday", "3 days ago")
+ * Returns human-readable relative time string
+ */
+export function formatRelativeTime(date: Date | string): string {
+  let d: Date;
+  if (typeof date === "string") {
+    const dateStr = date.trim();
+    if (dateStr.endsWith("Z") || dateStr.match(/[+-]\d{2}:\d{2}$/)) {
+      d = new Date(dateStr);
+    } else {
+      d = new Date(dateStr + "Z");
+    }
+  } else {
+    d = date;
+  }
+
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffSeconds < 60) {
+    return "Just now";
+  }
+  if (diffMinutes < 60) {
+    return `${diffMinutes} ${diffMinutes === 1 ? "minute" : "minutes"} ago`;
+  }
+  if (diffHours < 24) {
+    return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
+  }
+  if (diffDays === 1) {
+    return "Yesterday";
+  }
+  if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  }
+  if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`;
+  }
+  if (diffDays < 365) {
+    const months = Math.floor(diffDays / 30);
+    return `${months} ${months === 1 ? "month" : "months"} ago`;
+  }
+  const years = Math.floor(diffDays / 365);
+  return `${years} ${years === 1 ? "year" : "years"} ago`;
 }
