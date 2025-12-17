@@ -1,6 +1,6 @@
-# Voice Receptionist - Backend
+# Akseli Backend – Voice Receptionist
 
-FastAPI backend for the Voice Receptionist AI system.
+FastAPI backend for Akseli, the Voice Receptionist AI system for auto repair shops.
 
 ## Quick Start
 

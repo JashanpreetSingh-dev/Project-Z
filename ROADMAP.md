@@ -70,7 +70,7 @@ backend/
 │   ├── modules/                   # Domain modules (layered)
 │   │   ├── shops/                 # ShopConfig model + CRUD
 │   │   ├── calls/                 # CallLog model + CRUD
-│   │   └── voice/                 # Voice AI pipeline (Phase 2 + 3 ✅)
+│   │   └── voice/                 # Akseli voice pipeline (Phase 2 + 3 ✅)
 │   │       ├── realtime.py        # RealtimeClient - OpenAI WebSocket (Phase 3 ✅)
 │   │       ├── realtime_session.py # RealtimeSession - Voice manager (Phase 3 ✅)
 │   │       ├── router.py          # /api/voice/chat + /api/voice/stream
@@ -394,7 +394,7 @@ backend/app/modules/billing/
 | **Backend** | FastAPI (Python) | Async support, WebSockets, AI ecosystem |
 | **Database** | MongoDB + Beanie ODM | Flexible documents, fast writes, schema flexibility |
 | **LLM** | OpenAI GPT-4o-mini | Best function calling, low latency |
-| **Voice AI** | OpenAI Realtime API | Unified speech-to-speech, <100ms latency, native function calling |
+| **Akseli Voice** | OpenAI Realtime API | Unified speech-to-speech, <100ms latency, native function calling |
 | **Telephony** | Twilio | Best documentation, media streams |
 | **Frontend** | Next.js 14 (App Router) | Full-stack dashboard, React Server Components |
 | **Auth** | Clerk | Managed auth, easy JWT integration |

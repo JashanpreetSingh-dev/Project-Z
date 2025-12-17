@@ -60,7 +60,7 @@ export function Sidebar() {
           <Zap className="h-4 w-4 text-white" />
         </div>
         <Link href="/dashboard" className="text-lg font-bold">
-          Voice AI
+          Akseli
         </Link>
       </div>
 

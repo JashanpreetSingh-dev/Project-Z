@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - Voice AI",
-  description: "Voice AI's privacy policy. Learn how we protect your data and maintain your privacy.",
+  title: "Privacy Policy - Akseli",
+  description: "Akseli's privacy policy. Learn how we protect your data and maintain your privacy.",
 };
 
 export default function PrivacyPage() {
@@ -19,7 +19,7 @@ export default function PrivacyPage() {
           <div className="rounded-xl border bg-card p-6 space-y-4">
             <h2 className="text-xl font-semibold">Our Commitment to Privacy</h2>
             <p className="text-muted-foreground">
-              At Voice AI, we believe privacy is a fundamental right. Our service is designed 
+              At Akseli, we believe privacy is a fundamental right. Our service is designed 
               from the ground up to minimize data collection while maximizing value for your business.
             </p>
           </div>

@@ -29,7 +29,7 @@ export function MarketingFooter() {
               <div className="flex h-7 w-7 items-center justify-center rounded-lg gradient-bg">
                 <Zap className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="font-semibold">Voice AI</span>
+              <span className="font-semibold">Akseli</span>
             </Link>
             <p className="mt-3 text-sm text-muted-foreground max-w-xs">
               AI phone receptionist for auto shops. Never miss a call.
@@ -100,7 +100,7 @@ export function MarketingFooter() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-6 border-t">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Voice AI. All rights reserved.
+            &copy; {new Date().getFullYear()} Akseli. All rights reserved.
           </p>
         </div>
       </div>

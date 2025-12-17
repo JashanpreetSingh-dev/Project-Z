@@ -1,4 +1,4 @@
-# Voice Receptionist MVP (Auto Shops)
+# Akseli – Voice Receptionist MVP (Auto Shops)
 
 ## 1. Purpose of This Document
 
@@ -28,7 +28,7 @@ Existing solutions either:
 ## 3. Product Definition
 
 **What we are building:**
-A **voice-based AI receptionist** that answers phone calls and provides accurate responses by **searching structured auto shop data**, with full business control and privacy-first design.
+Akseli, a **voice-based AI receptionist** for auto repair shops, that answers phone calls and provides accurate responses by **searching structured shop data**, with full business control and privacy-first design.
 
 **What we are NOT building:**
 

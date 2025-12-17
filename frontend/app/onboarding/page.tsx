@@ -116,7 +116,7 @@ export default function OnboardingPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-bg">
             <Zap className="h-5 w-5 text-white" />
           </div>
-          <span className="text-2xl font-bold">Voice AI</span>
+          <span className="text-2xl font-bold">Akseli</span>
         </div>
 
         <Card className="glass-card">

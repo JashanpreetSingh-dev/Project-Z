@@ -1,4 +1,4 @@
-"""Voice AI pipeline module."""
+"""Akseli voice pipeline module."""
 
 from app.modules.voice.router import router
 from app.modules.voice.service import ConversationResult, ConversationService

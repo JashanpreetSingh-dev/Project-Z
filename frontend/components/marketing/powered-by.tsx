@@ -6,7 +6,7 @@ import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/animat
 const partners = [
   {
     name: "OpenAI",
-    description: "Voice AI & Language Models",
+    description: "Akseli & Language Models",
     Logo: OpenAILogo,
   },
   {

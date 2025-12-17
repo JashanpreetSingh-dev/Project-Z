@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact - Voice AI",
-  description: "Get in touch with Voice AI. Have questions about our AI phone receptionist? We'd love to hear from you.",
+  title: "Contact - Akseli",
+  description: "Get in touch with Akseli. Have questions about our AI phone receptionist? We'd love to hear from you.",
 };
 
 export default function ContactLayout({

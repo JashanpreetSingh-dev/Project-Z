@@ -69,7 +69,7 @@ export function HeroSection() {
             {/* Subheadline */}
             <BlurReveal delay={0.5} blurAmount={6}>
               <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-                AI receptionist that handles repair status checks, business hours, 
+                Akseli is a voice AI receptionist that handles repair status checks, business hours,
                 and customer questions—24/7, while you focus on fixing cars.
               </p>
             </BlurReveal>
