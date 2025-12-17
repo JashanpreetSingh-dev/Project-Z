@@ -9,9 +9,9 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.adapters import get_shop_adapter
 from app.adapters.base import ShopSystemAdapter
-from app.adapters.mock import MockAdapter
-from app.modules.shops.models import AdapterType, ShopConfig
+from app.modules.shops.models import ShopConfig
 from app.modules.voice.llm import LLMClient
 from app.modules.voice.prompts import get_system_prompt
 from app.modules.voice.tools import ToolRegistry
@@ -32,29 +32,17 @@ class ConversationResult:
 
 
 def get_adapter_for_config(config: ShopConfig | None) -> ShopSystemAdapter:
-    """Get the appropriate adapter based on shop config.
+    """Backward-compatible wrapper around the central adapter registry.
 
-    Args:
-        config: Shop configuration, or None for mock.
-
-    Returns:
-        The shop system adapter to use.
+    This delegates to app.adapters.get_shop_adapter so that adapter
+    selection is centralized. Existing call sites can keep using this
+    helper while new code can import get_shop_adapter directly.
     """
-    if config is None:
-        return MockAdapter()
 
-    if config.adapter_type == AdapterType.MOCK:
-        return MockAdapter()
-    elif config.adapter_type == AdapterType.TEKMETRIC:
-        # TODO: Implement TekmetricAdapter
-        logger.warning("Tekmetric adapter not implemented, using mock")
-        return MockAdapter()
-    elif config.adapter_type == AdapterType.SHOPWARE:
-        # TODO: Implement ShopWareAdapter
-        logger.warning("ShopWare adapter not implemented, using mock")
-        return MockAdapter()
-    else:
-        return MockAdapter()
+    # Note: AdapterType remains defined here for backwards compatibility
+    # and future expansion, but the actual routing logic now lives in
+    # the adapter registry.
+    return get_shop_adapter(config)
 
 
 class ConversationService:

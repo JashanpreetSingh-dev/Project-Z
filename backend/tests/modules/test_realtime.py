@@ -100,11 +100,13 @@ class TestRealtimeSession:
 
     def test_initialization_with_shop_config(self):
         """Test session with shop config."""
-        from app.modules.shops.models import ShopConfig
+        from app.modules.shops.models import ShopConfig, ShopSettings
 
         config = MagicMock(spec=ShopConfig)
         config.name = "Test Auto Shop"
         config.adapter_type = "mock"
+        # Provide default settings so adapter/calendar resolution works
+        config.settings = ShopSettings()
 
         session = RealtimeSession(shop_config=config)
 

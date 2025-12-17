@@ -2,6 +2,7 @@
 
 import logging
 
+from app.adapters import get_calendar_adapter as _get_calendar_adapter
 from app.adapters.calendar.base import CalendarAdapter
 from app.modules.shops.models import ShopConfig
 
@@ -9,50 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 def get_calendar_adapter(shop_config: ShopConfig | None) -> CalendarAdapter | None:
-    """Get the appropriate calendar adapter based on shop configuration.
+    """Delegate to the central adapter registry to resolve calendar adapter.
 
-    Args:
-        shop_config: Shop configuration, or None if no shop
-
-    Returns:
-        Calendar adapter instance, or None if disabled or no provider configured
+    This preserves the existing service interface while ensuring that
+    all adapter routing logic lives in app.adapters.
     """
-    if shop_config is None:
-        return None
-
-    calendar_settings = shop_config.settings.calendar_settings
-
-    # No provider configured
-    if calendar_settings.provider == "none":
-        return None
-
-    # Google Calendar adapter
-    if calendar_settings.provider == "google":
-        from app.adapters.calendar.google import GoogleCalendarAdapter
-
-        # Check if credentials are available
-        credentials = calendar_settings.credentials
-        if not credentials or not credentials.get("access_token"):
-            logger.warning(
-                "Google Calendar selected but no credentials found for shop %s",
-                shop_config.id,
-            )
-            return None
-
-        try:
-            return GoogleCalendarAdapter(
-                calendar_id=calendar_settings.calendar_id,
-                credentials=credentials,
-                default_duration_minutes=calendar_settings.default_duration_minutes,
-                business_hours_only=calendar_settings.business_hours_only,
-            )
-        except Exception as e:
-            logger.exception("Failed to create Google Calendar adapter: %s", e)
-            return None
-
-    # Unknown provider
-    logger.warning("Unknown calendar provider: %s", calendar_settings.provider)
-    return None
+    return _get_calendar_adapter(shop_config)
 
 
 def validate_booking_permission(shop_config: ShopConfig | None) -> bool:
