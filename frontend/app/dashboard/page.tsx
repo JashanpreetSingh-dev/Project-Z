@@ -11,6 +11,7 @@ import { useSubscription } from "@/hooks/billing/use-subscription";
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedCard, StaggerGrid, AnimatedButton, ScrollReveal } from "@/components/animations";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -80,7 +81,8 @@ export default function DashboardPage() {
 
       {/* Upgrade Prompt */}
       {showUpgradePrompt && (
-        <Card className={`${isAtLimit ? "border-destructive/50 bg-destructive/5" : "border-yellow-500/50 bg-yellow-500/5"}`}>
+        <ScrollReveal>
+          <Card className={`${isAtLimit ? "border-destructive/50 bg-destructive/5" : "border-yellow-500/50 bg-yellow-500/5"}`}>
           <CardContent className="flex items-center gap-4 py-4">
             <AlertCircle className={`h-6 w-6 shrink-0 ${isAtLimit ? "text-destructive" : "text-yellow-500"}`} />
             <div className="flex-1">
@@ -103,59 +105,65 @@ export default function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
+        </ScrollReveal>
       )}
 
       {/* Status Cards */}
-      <div className="grid gap-6 md:grid-cols-3 stagger-children">
+      <StaggerGrid className="grid gap-6 md:grid-cols-3" staggerDelay={0.1}>
         {/* AI Status Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              AI Status
-            </CardTitle>
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Activity className="h-4 w-4 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3">
-              <span
-                className={`status-dot ${
-                  shop.settings.ai_enabled ? "status-dot-active" : "status-dot-inactive"
-                }`}
-              />
-              <span className="text-2xl font-bold">
-                {shop.settings.ai_enabled ? "Active" : "Paused"}
-              </span>
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {shop.settings.ai_enabled
-                ? "Answering calls 24/7"
-                : "Calls forwarding to transfer number"}
-            </p>
-          </CardContent>
-        </Card>
+        <AnimatedCard hoverScale={1.01} tiltIntensity={5} delay={0}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                AI Status
+              </CardTitle>
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Activity className="h-4 w-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                <span
+                  className={`status-dot ${
+                    shop.settings.ai_enabled ? "status-dot-active" : "status-dot-inactive"
+                  }`}
+                />
+                <span className="text-2xl font-bold">
+                  {shop.settings.ai_enabled ? "Active" : "Paused"}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {shop.settings.ai_enabled
+                  ? "Answering calls 24/7"
+                  : "Calls forwarding to transfer number"}
+              </p>
+            </CardContent>
+          </Card>
+        </AnimatedCard>
 
         {/* Phone Number Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Phone Number
-            </CardTitle>
-            <div className="rounded-lg bg-primary/10 p-2">
-              <Phone className="h-4 w-4 text-primary" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{shop.phone}</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              AI-powered line
-            </p>
-          </CardContent>
-        </Card>
+        <AnimatedCard hoverScale={1.01} tiltIntensity={5} delay={0.1}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Phone Number
+              </CardTitle>
+              <div className="rounded-lg bg-primary/10 p-2">
+                <Phone className="h-4 w-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{shop.phone}</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                AI-powered line
+              </p>
+            </CardContent>
+          </Card>
+        </AnimatedCard>
 
         {/* Usage Card */}
-        <Card>
+        <AnimatedCard hoverScale={1.01} tiltIntensity={5} delay={0.2}>
+          <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Calls This Month
@@ -200,11 +208,13 @@ export default function DashboardPage() {
               </>
             )}
           </CardContent>
-        </Card>
-      </div>
+          </Card>
+        </AnimatedCard>
+      </StaggerGrid>
 
       {/* Quick Actions */}
-      <Card>
+      <ScrollReveal delay={0.1}>
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
@@ -212,27 +222,33 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-4">
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => router.push("/dashboard/settings")}
-          >
-            <Settings className="h-4 w-4" />
-            Configure Settings
-          </Button>
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => router.push("/dashboard/calls")}
-          >
-            <Phone className="h-4 w-4" />
-            View Call History
-          </Button>
+          <AnimatedButton variant="scale">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => router.push("/dashboard/settings")}
+            >
+              <Settings className="h-4 w-4" />
+              Configure Settings
+            </Button>
+          </AnimatedButton>
+          <AnimatedButton variant="scale">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => router.push("/dashboard/calls")}
+            >
+              <Phone className="h-4 w-4" />
+              View Call History
+            </Button>
+          </AnimatedButton>
         </CardContent>
       </Card>
+      </ScrollReveal>
 
       {/* Greeting Preview */}
-      <Card>
+      <ScrollReveal delay={0.15}>
+        <Card>
         <CardHeader>
           <CardTitle>AI Greeting Preview</CardTitle>
         </CardHeader>
@@ -243,16 +259,19 @@ export default function DashboardPage() {
               &quot;{shop.settings.greeting_message.replace("{shop_name}", shop.name)}&quot;
             </p>
           </div>
-          <Button
-            variant="ghost"
-            className="mt-4 gap-2 text-primary"
-            onClick={() => router.push("/dashboard/settings")}
-          >
-            Edit greeting
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <AnimatedButton variant="scale">
+            <Button
+              variant="ghost"
+              className="mt-4 gap-2 text-primary"
+              onClick={() => router.push("/dashboard/settings")}
+            >
+              Edit greeting
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </AnimatedButton>
         </CardContent>
       </Card>
+      </ScrollReveal>
         </div>
       </div>
     </div>

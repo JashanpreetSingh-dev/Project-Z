@@ -46,3 +46,14 @@ export {
   ParallaxBackground,
   HorizontalParallax,
 } from "./parallax";
+
+// React Bits enhanced components
+export {
+  EnhancedTextReveal,
+  TypewriterText,
+  ScrollProgress,
+  AnimatedCard,
+  MeshGradient,
+  StaggerGrid,
+  AnimatedButton,
+} from "../react-bits";

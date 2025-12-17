@@ -4,18 +4,23 @@ import Link from "next/link";
 import { ArrowRight, Play, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  TextReveal,
   GradientTextReveal,
   GradientBackground,
-  MagneticButton,
   FloatingElement,
   BlurReveal,
+  EnhancedTextReveal,
+  MeshGradient,
+  AnimatedButton,
+  ScrollProgress,
 } from "@/components/animations";
 
 export function HeroSection() {
   return (
-    <GradientBackground variant="hero">
-      <section className="relative">
+    <>
+      <ScrollProgress />
+      <GradientBackground variant="hero">
+        <MeshGradient variant="hero" animated>
+          <section className="relative">
         {/* Floating decorative elements */}
         <FloatingElement
           className="absolute top-20 left-[10%] hidden lg:block"
@@ -55,15 +60,25 @@ export function HeroSection() {
               </div>
             </BlurReveal>
 
-            {/* Headline - Animated text reveal */}
+            {/* Headline - Enhanced text reveal with React Bits */}
             <h1 className="heading-display">
-              <TextReveal text="Never Miss a" delay={0.1} />
+              <EnhancedTextReveal 
+                text="Never Miss a" 
+                delay={0.1} 
+                variant="word"
+                staggerDelay={0.05}
+              />
               {" "}
               <GradientTextReveal delay={0.4}>
                 Customer Call
               </GradientTextReveal>
               {" "}
-              <TextReveal text="Again" delay={0.6} />
+              <EnhancedTextReveal 
+                text="Again" 
+                delay={0.6} 
+                variant="word"
+                staggerDelay={0.05}
+              />
             </h1>
 
             {/* Subheadline */}
@@ -74,26 +89,26 @@ export function HeroSection() {
               </p>
             </BlurReveal>
 
-            {/* CTA Buttons with magnetic effect */}
+            {/* CTA Buttons with enhanced React Bits animations */}
             <BlurReveal delay={0.6} direction="up">
               <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <MagneticButton strength={0.15}>
+                <AnimatedButton variant="glow" strength={0.15}>
                   <Button size="lg" className="btn-primary-glow h-14 px-8 text-base" asChild>
                     <Link href="/sign-up">
                       Get Started Free
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
-                </MagneticButton>
+                </AnimatedButton>
                 
-                <MagneticButton strength={0.1}>
+                <AnimatedButton variant="magnetic" strength={0.1}>
                   <Button size="lg" variant="ghost" className="h-14 px-6 text-base text-muted-foreground" asChild>
                     <Link href="/demo">
                       <Play className="mr-2 h-4 w-4" />
                       Watch Demo
                     </Link>
                   </Button>
-                </MagneticButton>
+                </AnimatedButton>
               </div>
             </BlurReveal>
 
@@ -106,6 +121,8 @@ export function HeroSection() {
           </div>
         </div>
       </section>
+      </MeshGradient>
     </GradientBackground>
+    </>
   );
 }
