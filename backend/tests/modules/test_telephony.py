@@ -19,6 +19,10 @@ class TestFunctionToIntentMapping:
         assert FUNCTION_TO_INTENT["get_location"] == CallIntent.GET_LOCATION
         assert FUNCTION_TO_INTENT["list_services"] == CallIntent.GET_SERVICES
         assert FUNCTION_TO_INTENT["transfer_to_human"] == CallIntent.TRANSFER_HUMAN
+        # Booking tools
+        assert FUNCTION_TO_INTENT["check_availability"] == CallIntent.SCHEDULE_APPOINTMENT
+        assert FUNCTION_TO_INTENT["propose_appointment"] == CallIntent.SCHEDULE_APPOINTMENT
+        assert FUNCTION_TO_INTENT["confirm_appointment"] == CallIntent.SCHEDULE_APPOINTMENT
 
     def test_unknown_function_returns_unknown(self):
         """Unknown functions should return UNKNOWN intent."""
@@ -50,13 +54,15 @@ class TestTwilioRealtimeSession:
 
     def test_initialization_with_shop_config(self):
         """Test session with shop config."""
-        from app.modules.shops.models import ShopConfig
+        from app.modules.shops.models import ShopConfig, ShopSettings
 
         mock_ws = MagicMock()
         config = MagicMock(spec=ShopConfig)
         config.name = "Test Auto Shop"
         config.id = "shop123"
         config.adapter_type = "mock"
+        # Provide default settings so adapter/calendar resolution works
+        config.settings = ShopSettings()
 
         session = TwilioRealtimeSession(
             twilio_ws=mock_ws,

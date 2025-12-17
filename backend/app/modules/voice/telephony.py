@@ -20,6 +20,7 @@ from app.modules.context.service import update_context_from_call, update_context
 from app.modules.shops.models import ShopConfig
 from app.modules.shops.service import get_shop_config_by_id, get_shop_config_by_phone
 from app.modules.sms.service import SmsService
+from app.modules.voice.intents import TOOL_TO_INTENT_MAPPING
 from app.modules.voice.prompts import get_system_prompt
 from app.modules.voice.realtime import RealtimeEventType
 from app.modules.voice.realtime_session import RealtimeSession, SessionState
@@ -32,18 +33,11 @@ _settings = get_settings()
 
 
 # =============================================================================
-# Intent Mapping (could be moved to tools.py if needed elsewhere)
+# Intent Mapping
 # =============================================================================
 
-FUNCTION_TO_INTENT: dict[str, CallIntent] = {
-    "lookup_work_order": CallIntent.CHECK_STATUS,
-    "get_work_order_status": CallIntent.CHECK_STATUS,
-    "get_customer_vehicles": CallIntent.CHECK_STATUS,
-    "get_business_hours": CallIntent.GET_HOURS,
-    "get_location": CallIntent.GET_LOCATION,
-    "list_services": CallIntent.GET_SERVICES,
-    "transfer_to_human": CallIntent.TRANSFER_HUMAN,
-}
+# Use centralized mapping from intents module for consistency
+FUNCTION_TO_INTENT: dict[str, CallIntent] = TOOL_TO_INTENT_MAPPING
 
 
 # =============================================================================
@@ -85,6 +79,7 @@ class TwilioRealtimeSession(RealtimeSession):
             on_audio_out=self._send_audio_to_twilio,
             on_transcript=self._record_transcript,
             session_id=call_sid,  # Use call_sid as session_id
+            caller_phone=from_number,
         )
 
         # Twilio-specific state
@@ -349,6 +344,9 @@ class TwilioRealtimeSession(RealtimeSession):
                     "to_number": self.to_number,
                     "tool_count": len(self._metrics.tool_calls),
                     "transcript_count": len(self._transcripts),
+                    "booking_attempts": self.tools.get_booking_attempts()
+                    if hasattr(self.tools, "get_booking_attempts")
+                    else [],
                 },
             )
             await call_log.insert()

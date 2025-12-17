@@ -8,6 +8,34 @@ from app.modules.shops.models import AdapterCredentials, ShopConfig, ShopSetting
 from app.modules.shops.schemas import ShopConfigCreate, ShopConfigUpdate
 
 
+def get_allowed_intents(shop_config: ShopConfig | None) -> list[str]:
+    """Get allowed intents based on shop configuration.
+
+    This dynamically includes intents based on enabled features,
+    making it easy to extend with new conditional intents.
+
+    Args:
+        shop_config: The shop configuration, or None if no shop exists.
+
+    Returns:
+        List of allowed intent strings based on shop configuration.
+    """
+    base_intents = [
+        "CHECK_STATUS",
+        "GET_HOURS",
+        "GET_LOCATION",
+        "GET_SERVICES",
+        "TRANSFER_HUMAN",
+    ]
+
+    # Add booking intent if calendar booking is enabled
+    if shop_config and shop_config.settings.calendar_settings.mode == "booking_enabled":
+        if shop_config.settings.calendar_settings.provider != "none":
+            base_intents.append("SCHEDULE_APPOINTMENT")
+
+    return base_intents
+
+
 async def get_all_shop_configs() -> list[ShopConfig]:
     """Get all shop configurations.
 
@@ -150,6 +178,19 @@ async def update_shop_config_by_owner(owner_id: str, data: ShopConfigUpdate) -> 
     # Normalize phone if being updated
     if "phone" in update_data and update_data["phone"]:
         update_data["phone"] = normalize_phone(update_data["phone"])
+
+    # Preserve calendar_settings.credentials if calendar_settings is being updated
+    # This prevents clearing OAuth credentials when updating other calendar settings
+    if "settings" in update_data and "calendar_settings" in update_data["settings"]:
+        if config.settings and config.settings.calendar_settings:
+            existing_credentials = config.settings.calendar_settings.credentials
+            if existing_credentials:
+                # Merge credentials into the update to preserve them
+                if "credentials" not in update_data["settings"]["calendar_settings"]:
+                    # Convert credentials dict to proper format
+                    update_data["settings"]["calendar_settings"]["credentials"] = (
+                        existing_credentials
+                    )
 
     await config.update({"$set": update_data})
     await config.sync()

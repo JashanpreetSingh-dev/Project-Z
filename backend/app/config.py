@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     stripe_starter_price_id: str = ""
     stripe_pro_price_id: str = ""
 
+    # Google Calendar OAuth
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""  # e.g., "https://your-domain.com/api/calendar/google/callback"
+
     # App Settings
     debug: bool = False
     log_level: str = "INFO"

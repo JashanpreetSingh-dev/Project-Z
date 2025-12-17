@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
+from typing import Any, Literal
 
 from beanie import Document, Indexed
 from pydantic import BaseModel, Field
@@ -15,6 +16,27 @@ class AdapterType(str, Enum):
     MOCK = "mock"  # For MVP testing with sample JSON
     TEKMETRIC = "tekmetric"  # Tekmetric integration
     SHOPWARE = "shopware"  # Shop-Ware integration
+
+
+class CalendarSettings(BaseModel):
+    """Calendar integration settings for appointment booking."""
+
+    mode: Literal["read_only", "booking_enabled"] = Field(
+        default="read_only", description="Calendar access mode"
+    )
+    provider: Literal["none", "google"] = Field(default="none", description="Calendar provider")
+    calendar_id: str = Field(
+        default="primary", description="Calendar ID (e.g., 'primary' for Google Calendar)"
+    )
+    default_duration_minutes: int = Field(
+        default=30, ge=15, le=240, description="Default appointment duration in minutes"
+    )
+    business_hours_only: bool = Field(
+        default=True, description="Only allow appointments during business hours"
+    )
+    credentials: dict[str, Any] = Field(
+        default_factory=dict, description="OAuth tokens and connection info"
+    )
 
 
 class ShopSettings(BaseModel):
@@ -41,6 +63,9 @@ class ShopSettings(BaseModel):
     )
     sms_from_number: str | None = Field(
         default=None, description="SMS sender number override (defaults to shop's Twilio number)"
+    )
+    calendar_settings: CalendarSettings = Field(
+        default_factory=CalendarSettings, description="Calendar integration settings"
     )
 
 

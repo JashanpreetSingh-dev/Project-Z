@@ -15,7 +15,9 @@ from enum import Enum
 from typing import Any
 
 from app.config import get_settings
+from app.modules.calendar.service import get_calendar_adapter
 from app.modules.shops.models import ShopConfig
+from app.modules.voice.booking_state import BookingState
 from app.modules.voice.prompts import get_system_prompt
 from app.modules.voice.realtime import RealtimeClient, RealtimeEventType
 from app.modules.voice.service import get_adapter_for_config
@@ -64,6 +66,7 @@ class RealtimeSession:
         on_transcript: Callable[[str, str], Awaitable[None]] | None = None,
         on_state_change: Callable[[SessionState], Awaitable[None]] | None = None,
         session_id: str | None = None,
+        caller_phone: str | None = None,
     ):
         """Initialize the voice session.
 
@@ -91,7 +94,19 @@ class RealtimeSession:
             model=settings.realtime_model,
         )
         adapter = get_adapter_for_config(shop_config)
-        self.tools = ToolRegistry(adapter)
+
+        # Calendar integration
+        calendar_adapter = get_calendar_adapter(shop_config)
+        booking_state = BookingState()
+
+        self.tools = ToolRegistry(
+            adapter=adapter,
+            calendar_adapter=calendar_adapter,
+            booking_state=booking_state,
+            shop_config=shop_config,
+            caller_phone=caller_phone,
+        )
+        self.booking_state = booking_state
 
         # State
         self._state = SessionState.IDLE
@@ -293,6 +308,10 @@ class RealtimeSession:
     async def stop(self) -> None:
         """End the session and clean up."""
         logger.info("Stopping session %s", self.session_id)
+
+        # Clear booking state
+        if hasattr(self, "booking_state") and self.booking_state:
+            self.booking_state.clear()
 
         if self._event_task:
             self._event_task.cancel()

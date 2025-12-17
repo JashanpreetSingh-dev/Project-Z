@@ -71,6 +71,10 @@ def test_tool_to_intent_mapping():
     assert service._tool_to_intent("get_location") == "GET_LOCATION"
     assert service._tool_to_intent("list_services") == "GET_SERVICES"
     assert service._tool_to_intent("transfer_to_human") == "TRANSFER_HUMAN"
+    # Booking tools
+    assert service._tool_to_intent("check_availability") == "SCHEDULE_APPOINTMENT"
+    assert service._tool_to_intent("propose_appointment") == "SCHEDULE_APPOINTMENT"
+    assert service._tool_to_intent("confirm_appointment") == "SCHEDULE_APPOINTMENT"
     assert service._tool_to_intent("unknown_tool") == "UNKNOWN"
 
 
