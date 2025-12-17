@@ -12,6 +12,9 @@ import {
   BlurReveal,
   MagneticButton,
   FadeBlur,
+  AnimatedCard,
+  StaggerGrid,
+  EnhancedTextReveal,
 } from "@/components/animations";
 
 export const metadata: Metadata = {
@@ -49,7 +52,11 @@ export default async function HomePage() {
             <div className="mx-auto max-w-2xl text-center mb-16">
               <p className="section-eyebrow">Features</p>
               <h2 className="heading-section">
-                Everything your shop needs
+                <EnhancedTextReveal 
+                  text="Everything your shop needs" 
+                  variant="word"
+                  staggerDelay={0.05}
+                />
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Handle routine calls automatically so you can focus on repairs.
@@ -57,9 +64,12 @@ export default async function HomePage() {
             </div>
           </ScrollReveal>
 
-          <div className="mx-auto max-w-5xl grid gap-6 md:grid-cols-3">
+          <StaggerGrid
+            className="mx-auto max-w-5xl grid gap-6 md:grid-cols-3"
+            staggerDelay={0.15}
+          >
             {/* Feature 1 */}
-            <BlurReveal delay={0.1} blurAmount={6}>
+            <AnimatedCard hoverScale={1.03} tiltIntensity={10} delay={0.1}>
               <div className="card-feature h-full">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Wrench className="h-5 w-5" />
@@ -69,10 +79,10 @@ export default async function HomePage() {
                   AI looks up work orders and provides real-time updates to customers instantly.
                 </p>
               </div>
-            </BlurReveal>
+            </AnimatedCard>
 
             {/* Feature 2 */}
-            <BlurReveal delay={0.2} blurAmount={6}>
+            <AnimatedCard hoverScale={1.03} tiltIntensity={10} delay={0.2}>
               <div className="card-feature h-full">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Clock className="h-5 w-5" />
@@ -82,10 +92,10 @@ export default async function HomePage() {
                   Answers questions about hours, location, and directions—even after hours.
                 </p>
               </div>
-            </BlurReveal>
+            </AnimatedCard>
 
             {/* Feature 3 */}
-            <BlurReveal delay={0.3} blurAmount={6}>
+            <AnimatedCard hoverScale={1.03} tiltIntensity={10} delay={0.3}>
               <div className="card-feature h-full">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Phone className="h-5 w-5" />
@@ -95,8 +105,8 @@ export default async function HomePage() {
                   Complex questions get transferred to your team with full context.
                 </p>
               </div>
-            </BlurReveal>
-          </div>
+            </AnimatedCard>
+          </StaggerGrid>
 
         </div>
       </section>
@@ -168,9 +178,12 @@ export default async function HomePage() {
             </div>
           </ScrollReveal>
 
-          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+          <StaggerGrid
+            className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto"
+            staggerDelay={0.1}
+          >
             {/* Starter Plan */}
-            <BlurReveal delay={0.1} blurAmount={6}>
+            <AnimatedCard hoverScale={1.02} tiltIntensity={8} delay={0.1}>
               <div className="relative rounded-xl border bg-card p-6 h-full">
                 <div>
                   <h3 className="text-lg font-semibold">Starter</h3>
@@ -196,10 +209,10 @@ export default async function HomePage() {
                   </Button>
                 </div>
               </div>
-            </BlurReveal>
+            </AnimatedCard>
 
             {/* Professional Plan */}
-            <BlurReveal delay={0.2} blurAmount={6}>
+            <AnimatedCard hoverScale={1.05} tiltIntensity={10} delay={0.2} glowOnHover>
               <div className="relative rounded-xl border border-primary ring-1 ring-primary/20 bg-card p-6 h-full">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span className="gradient-bg text-white text-xs font-medium px-3 py-1 rounded-full">
@@ -235,10 +248,10 @@ export default async function HomePage() {
                   </MagneticButton>
                 </div>
               </div>
-            </BlurReveal>
+            </AnimatedCard>
 
             {/* Enterprise Plan */}
-            <BlurReveal delay={0.3} blurAmount={6}>
+            <AnimatedCard hoverScale={1.02} tiltIntensity={8} delay={0.3}>
               <div className="relative rounded-xl border bg-card p-6 h-full">
                 <div>
                   <h3 className="text-lg font-semibold">Enterprise</h3>
@@ -263,8 +276,8 @@ export default async function HomePage() {
                   </Button>
                 </div>
               </div>
-            </BlurReveal>
-          </div>
+            </AnimatedCard>
+          </StaggerGrid>
         </div>
       </section>
 
@@ -280,9 +293,12 @@ export default async function HomePage() {
             </div>
           </ScrollReveal>
 
-          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+          <StaggerGrid
+            className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto"
+            staggerDelay={0.1}
+          >
             {/* Testimonial 1 */}
-            <BlurReveal delay={0.1} blurAmount={6}>
+            <AnimatedCard hoverScale={1.02} tiltIntensity={5} delay={0.1}>
               <div className="rounded-xl border bg-card p-6 h-full">
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   &quot;We used to miss 30% of our calls during busy hours. Now every call gets answered instantly. Customers love getting immediate updates.&quot;
@@ -292,10 +308,10 @@ export default async function HomePage() {
                   <p className="text-xs text-muted-foreground">Mike&apos;s Auto Repair, Denver</p>
                 </div>
               </div>
-            </BlurReveal>
+            </AnimatedCard>
 
             {/* Testimonial 2 */}
-            <BlurReveal delay={0.2} blurAmount={6}>
+            <AnimatedCard hoverScale={1.02} tiltIntensity={5} delay={0.2}>
               <div className="rounded-xl border bg-card p-6 h-full">
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   &quot;Setup took 10 minutes. The AI sounds natural and customers often don&apos;t realize they&apos;re not talking to a person. Game changer.&quot;
@@ -305,10 +321,10 @@ export default async function HomePage() {
                   <p className="text-xs text-muted-foreground">City Garage, Austin</p>
                 </div>
               </div>
-            </BlurReveal>
+            </AnimatedCard>
 
             {/* Testimonial 3 */}
-            <BlurReveal delay={0.3} blurAmount={6}>
+            <AnimatedCard hoverScale={1.02} tiltIntensity={5} delay={0.3}>
               <div className="rounded-xl border bg-card p-6 h-full">
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   &quot;The privacy-first approach sold me. No recordings, just clean summaries. I know what happened without storing sensitive data.&quot;
@@ -318,8 +334,8 @@ export default async function HomePage() {
                   <p className="text-xs text-muted-foreground">Express Repair, Phoenix</p>
                 </div>
               </div>
-            </BlurReveal>
-          </div>
+            </AnimatedCard>
+          </StaggerGrid>
         </div>
       </section>
 

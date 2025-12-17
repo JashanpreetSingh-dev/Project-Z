@@ -1,7 +1,7 @@
 "use client";
 
 import { Phone, Brain, MessageCircle } from "lucide-react";
-import { ScrollReveal, GradientText } from "@/components/animations";
+import { ScrollReveal, GradientText, AnimatedCard, EnhancedTextReveal, StaggerGrid } from "@/components/animations";
 
 const steps = [
   {
@@ -32,15 +32,21 @@ export function HowItWorksSection() {
         <ScrollReveal>
           <div className="mx-auto max-w-2xl text-center mb-16">
             <p className="section-eyebrow">How it works</p>
-            <h2 className="heading-section">Simple, seamless, automatic</h2>
+            <h2 className="heading-section">
+              <EnhancedTextReveal 
+                text="Simple, seamless, automatic" 
+                variant="word"
+                staggerDelay={0.05}
+              />
+            </h2>
           </div>
         </ScrollReveal>
 
         {/* Steps */}
         <div className="mx-auto max-w-4xl">
-          <div className="grid gap-8 md:grid-cols-3">
+          <StaggerGrid className="grid gap-8 md:grid-cols-3" staggerDelay={0.15}>
             {steps.map((step, index) => (
-              <ScrollReveal key={step.title} delay={index * 0.1}>
+              <AnimatedCard key={step.title} hoverScale={1.03} tiltIntensity={8} delay={index * 0.1}>
                 <div className="relative text-center">
                   {/* Icon */}
                   <div className="mx-auto mb-5">
@@ -59,9 +65,9 @@ export function HowItWorksSection() {
                     <div className="hidden md:block absolute top-7 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-gradient-to-r from-primary/40 via-primary/20 to-primary/40" />
                   )}
                 </div>
-              </ScrollReveal>
+              </AnimatedCard>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </div>
     </section>
