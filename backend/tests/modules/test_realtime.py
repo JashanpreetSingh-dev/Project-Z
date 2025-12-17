@@ -290,7 +290,7 @@ async def test_realtime_client_connection():
 
     finally:
         await client.close()
-        assert client.is_connected is False
+        assert not client.is_connected
 
 
 @pytest.mark.asyncio

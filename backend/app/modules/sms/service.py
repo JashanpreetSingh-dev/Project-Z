@@ -21,7 +21,9 @@ class SmsService:
     def __init__(self) -> None:
         """Initialize Twilio client."""
         if _settings.twilio_account_sid and _settings.twilio_auth_token:
-            self.client = Client(_settings.twilio_account_sid, _settings.twilio_auth_token)
+            self.client: Client | None = Client(
+                _settings.twilio_account_sid, _settings.twilio_auth_token
+            )
         else:
             self.client = None
             logger.warning("Twilio credentials not configured, SMS will be disabled")
