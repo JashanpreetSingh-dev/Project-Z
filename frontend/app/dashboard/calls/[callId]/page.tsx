@@ -3,11 +3,11 @@
 // Force dynamic rendering to prevent static generation with Clerk hooks
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
 import { Loader2, Phone, MessageSquare, User, ArrowLeft } from "lucide-react";
-import { callsAPI, contextAPI, type CallLog, type CustomerContext } from "@/lib/api";
+import { type CallLog } from "@/lib/api";
+import { useCall } from "@/hooks/calls/use-call";
+import { useCustomerContext } from "@/hooks/context/use-customer-context";
 import { formatDateTime, formatDuration, formatPhoneDisplay, formatRelativeTime } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,63 +16,10 @@ import { Button } from "@/components/ui/button";
 export default function CallDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
   const callId = params.callId as string;
 
-  const [call, setCall] = useState<CallLog | null>(null);
-  const [customerContext, setCustomerContext] = useState<CustomerContext | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingContext, setIsLoadingContext] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn || !callId) return;
-
-    async function loadCallDetails() {
-      try {
-        const token = await getToken();
-        if (!token) {
-          setError("Unable to get authentication token");
-          return;
-        }
-
-        // Load call details
-        const callData = await callsAPI.getCall(callId, token);
-        setCall(callData);
-
-        // Load customer context if phone number exists
-        if (callData.caller_number) {
-          setIsLoadingContext(true);
-          try {
-            const context = await contextAPI.getCustomerContext(callData.caller_number, token);
-            setCustomerContext(context);
-          } catch (err) {
-            // Context might not exist yet, that's okay
-            setCustomerContext(null);
-          } finally {
-            setIsLoadingContext(false);
-          }
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load call details");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadCallDetails();
-  }, [callId, getToken, isLoaded, isSignedIn]);
-
-  if (!isLoaded) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  const { data: call, isLoading, error } = useCall(callId);
+  const { data: customerContext, isLoading: isLoadingContext } = useCustomerContext(call?.caller_number ?? null);
 
   if (isLoading) {
     return (
@@ -101,7 +48,7 @@ export default function CallDetailPage() {
             <div className="text-destructive mb-2">⚠️</div>
             <CardTitle className="text-lg">Call not found</CardTitle>
             <CardDescription className="mt-2">
-              {error || "The call you're looking for doesn't exist or you don't have access to it."}
+              {error instanceof Error ? error.message : "The call you're looking for doesn't exist or you don't have access to it."}
             </CardDescription>
           </CardContent>
         </Card>
@@ -111,7 +58,7 @@ export default function CallDetailPage() {
 
   // Filter and sort interactions
   const callTimestamp = new Date(call.timestamp).getTime();
-  let filteredInteractions = customerContext?.interactions.filter((interaction) => {
+  let filteredInteractions = customerContext?.interactions.filter((interaction: { timestamp?: string | null }) => {
     if (!interaction.timestamp) return false;
     const interactionTime = new Date(interaction.timestamp).getTime();
     return interactionTime <= callTimestamp;
@@ -234,7 +181,7 @@ export default function CallDetailPage() {
                                 Vehicles
                               </div>
                               <div className="space-y-1">
-                                {customerContext.known_info.vehicles.map((vehicle, idx) => (
+                                {customerContext.known_info.vehicles.map((vehicle: { make?: string; model?: string; year?: number }, idx: number) => (
                                   <p key={idx} className="text-sm">
                                     {vehicle.year} {vehicle.make} {vehicle.model}
                                   </p>
@@ -276,7 +223,7 @@ export default function CallDetailPage() {
                             
                             {/* Timeline items */}
                             <div className="space-y-4 pb-4">
-                              {filteredInteractions.map((interaction, idx) => {
+                              {filteredInteractions.map((interaction: { channel: "voice" | "sms"; timestamp?: string | null; intent?: string | null; summary?: string | null; outcome?: string | null }, idx: number) => {
                                 const isCall = interaction.channel === "voice";
                                 return (
                                   <div key={idx} className="relative flex gap-3 md:gap-4">

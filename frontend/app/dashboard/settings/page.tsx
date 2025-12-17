@@ -5,9 +5,10 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
 import { Check, Loader2, Settings, MessageSquare, Phone, Timer, Smartphone } from "lucide-react";
-import { shopAPI, type ShopConfig, type ShopConfigUpdate } from "@/lib/api";
+import { type ShopConfigUpdate } from "@/lib/api";
+import { useShop } from "@/hooks/shops/use-shop";
+import { useUpdateShop } from "@/hooks/shops/use-update-shop";
 import { formatPhoneInput, formatPhoneDisplay } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,10 +19,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [shop, setShop] = useState<ShopConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const { data: shop, isLoading, error: shopError } = useShop();
+  const updateShop = useUpdateShop();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -35,96 +34,57 @@ export default function SettingsPage() {
     sms_call_summary_enabled: false,
   });
 
+  // Initialize form data when shop loads
   useEffect(() => {
-    // Wait for Clerk to fully load before making API calls
-    if (!isLoaded) return;
-
-    if (!isSignedIn) {
-      setIsLoading(false);
-      return;
+    if (shop) {
+      setFormData({
+        name: shop.name,
+        phone: formatPhoneDisplay(shop.phone),
+        greeting_message: shop.settings.greeting_message,
+        transfer_number: formatPhoneDisplay(shop.settings.transfer_number || ""),
+        ai_enabled: shop.settings.ai_enabled,
+        max_call_duration_seconds: shop.settings.max_call_duration_seconds,
+        sms_call_summary_enabled: shop.settings.sms_call_summary_enabled || false,
+      });
     }
+  }, [shop]);
 
-    async function loadShop() {
-      try {
-        const token = await getToken();
-        if (!token) {
-          setError("Unable to get authentication token");
-          return;
-        }
-
-        const shopData = await shopAPI.getMyShop(token);
-        if (!shopData) {
-          router.push("/onboarding");
-          return;
-        }
-
-        setShop(shopData);
-        setFormData({
-          name: shopData.name,
-          phone: formatPhoneDisplay(shopData.phone),
-          greeting_message: shopData.settings.greeting_message,
-          transfer_number: formatPhoneDisplay(shopData.settings.transfer_number || ""),
-          ai_enabled: shopData.settings.ai_enabled,
-          max_call_duration_seconds: shopData.settings.max_call_duration_seconds,
-          sms_call_summary_enabled: shopData.settings.sms_call_summary_enabled || false,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load shop");
-      } finally {
-        setIsLoading(false);
-      }
+  // Redirect to onboarding if no shop exists
+  useEffect(() => {
+    if (!isLoading && !shop) {
+      router.push("/onboarding");
     }
-
-    loadShop();
-  }, [getToken, router, isLoaded, isSignedIn]);
+  }, [shop, isLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
     setError(null);
     setSuccess(false);
 
-    // Ensure Clerk is ready before making API call
-    if (!isLoaded) {
-      setError("Authentication is loading, please try again");
-      setIsSaving(false);
+    if (!shop) {
+      setError("Shop data not loaded");
       return;
     }
 
-    if (!isSignedIn) {
-      router.push("/sign-in?redirect_url=/dashboard/settings");
-      return;
-    }
+    const update: ShopConfigUpdate = {
+      name: formData.name,
+      phone: formData.phone,
+      settings: {
+        greeting_message: formData.greeting_message,
+        transfer_number: formData.transfer_number || null,
+        ai_enabled: formData.ai_enabled,
+        max_call_duration_seconds: formData.max_call_duration_seconds,
+        sms_call_summary_enabled: formData.sms_call_summary_enabled,
+        allowed_intents: shop.settings.allowed_intents || [],
+      },
+    };
 
     try {
-      const token = await getToken();
-      if (!token) {
-        router.push("/sign-in?redirect_url=/dashboard/settings");
-        return;
-      }
-
-      const update: ShopConfigUpdate = {
-        name: formData.name,
-        phone: formData.phone,
-        settings: {
-          greeting_message: formData.greeting_message,
-          transfer_number: formData.transfer_number || null,
-          ai_enabled: formData.ai_enabled,
-          max_call_duration_seconds: formData.max_call_duration_seconds,
-          sms_call_summary_enabled: formData.sms_call_summary_enabled,
-          allowed_intents: shop?.settings.allowed_intents || [],
-        },
-      };
-
-      const updated = await shopAPI.updateMyShop(update, token);
-      setShop(updated);
+      await updateShop.mutateAsync(update);
       setSuccess(true);
-
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save settings");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -135,6 +95,15 @@ export default function SettingsPage() {
           <Loader2 className="h-5 w-5 animate-spin" />
           <span>Loading settings...</span>
         </div>
+      </div>
+    );
+  }
+
+  if (shopError) {
+    return (
+      <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-destructive">
+        <p className="font-medium">Error loading settings</p>
+        <p className="mt-1 text-sm opacity-80">{shopError instanceof Error ? shopError.message : "Failed to load settings"}</p>
       </div>
     );
   }
@@ -373,8 +342,8 @@ export default function SettingsPage() {
 
         {/* Submit */}
         <div className="flex justify-end">
-          <Button type="submit" disabled={isSaving} className="gradient-bg border-0 px-8">
-            {isSaving ? (
+          <Button type="submit" disabled={updateShop.isPending} className="gradient-bg border-0 px-8">
+            {updateShop.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...

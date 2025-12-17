@@ -5,9 +5,9 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
 import { Loader2, PhoneIncoming } from "lucide-react";
-import { callsAPI, type CallLog } from "@/lib/api";
+import { type CallLog } from "@/lib/api";
+import { useCalls } from "@/hooks/calls/use-calls";
 import { formatDateTime, formatDuration, formatPhoneDisplay } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,52 +22,19 @@ import {
 
 export default function CallsPage() {
   const router = useRouter();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [calls, setCalls] = useState<CallLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: calls = [], isLoading, error } = useCalls();
   // Infinite scroll pagination
   const [displayedCalls, setDisplayedCalls] = useState<CallLog[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const CALLS_PER_LOAD = 20;
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  // Initialize displayed calls when data loads
   useEffect(() => {
-    // Wait for Clerk to fully load before making API calls
-    if (!isLoaded) return;
-
-    if (!isSignedIn) {
-      setIsLoading(false);
-      return;
+    if (calls.length > 0 && displayedCalls.length === 0) {
+      setDisplayedCalls(calls.slice(0, CALLS_PER_LOAD));
     }
-
-    async function loadCalls() {
-      try {
-        const token = await getToken();
-        if (!token) {
-          setError("Unable to get authentication token");
-          return;
-        }
-
-        const callsData = await callsAPI.getMyCalls(token);
-        // Sort calls by timestamp (newest first)
-        const sortedCalls = [...callsData].sort((a, b) => {
-          const timeA = new Date(a.timestamp).getTime();
-          const timeB = new Date(b.timestamp).getTime();
-          return timeB - timeA; // Newest first
-        });
-        setCalls(sortedCalls);
-        // Load initial batch
-        setDisplayedCalls(sortedCalls.slice(0, CALLS_PER_LOAD));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load calls");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadCalls();
-  }, [getToken, isLoaded, isSignedIn]);
+  }, [calls, displayedCalls.length]);
 
   // Load more calls for infinite scroll
   const loadMoreCalls = useCallback(() => {
@@ -142,7 +109,7 @@ export default function CallsPage() {
         {error && (
           <div className="flex items-center gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive mb-4">
             <span>⚠️</span>
-            <p>{error}</p>
+            <p>{error instanceof Error ? error.message : "Failed to load calls"}</p>
           </div>
         )}
 

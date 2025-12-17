@@ -3,8 +3,7 @@
 // Force dynamic rendering to prevent static generation with Clerk hooks
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useState } from "react";
 import {
   Loader2,
   Phone,
@@ -12,7 +11,7 @@ import {
   Clock,
   TrendingUp,
 } from "lucide-react";
-import { callsAPI, type CallAnalytics } from "@/lib/api";
+import { useCallAnalytics } from "@/hooks/calls/use-call-analytics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,41 +31,8 @@ function formatDuration(seconds: number): string {
 }
 
 export default function AnalyticsPage() {
-  const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [analytics, setAnalytics] = useState<CallAnalytics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>(30);
-
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!isSignedIn) {
-      setIsLoading(false);
-      return;
-    }
-
-    async function loadAnalytics() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const token = await getToken();
-        if (!token) {
-          setError("Unable to get authentication token");
-          return;
-        }
-
-        const data = await callsAPI.getAnalytics(token, dateRange);
-        setAnalytics(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load analytics");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadAnalytics();
-  }, [getToken, isLoaded, isSignedIn, dateRange]);
+  const { data: analytics, isLoading, error } = useCallAnalytics(dateRange);
 
   if (isLoading) {
     return (
@@ -82,6 +48,10 @@ export default function AnalyticsPage() {
   if (error) {
     return (
       <div className="space-y-8 animate-fade-in">
+        <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-destructive">
+          <p className="font-medium">Error loading analytics</p>
+          <p className="mt-1 text-sm opacity-80">{error instanceof Error ? error.message : "Failed to load analytics"}</p>
+        </div>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             <span className="gradient-text">Call Analytics</span>
@@ -92,7 +62,7 @@ export default function AnalyticsPage() {
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-destructive/50 bg-destructive/10 p-4 text-destructive">
           <span className="text-lg">⚠️</span>
-          <p>{error}</p>
+          <p>{error instanceof Error ? error.message : "Failed to load analytics"}</p>
         </div>
       </div>
     );

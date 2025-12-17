@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CreditCard,
   Check,
@@ -11,10 +11,11 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
-  billingAPI,
-  type SubscriptionInfo,
   type PlanTier,
 } from "@/lib/api";
+import { useSubscription } from "@/hooks/billing/use-subscription";
+import { useCheckout } from "@/hooks/billing/use-checkout";
+import { usePortal } from "@/hooks/billing/use-portal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -84,35 +85,9 @@ const PLANS: {
 ];
 
 export default function BillingPage() {
-  const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [checkoutLoading, setCheckoutLoading] = useState<PlanTier | null>(null);
-  const [portalLoading, setPortalLoading] = useState(false);
-
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-
-    async function loadSubscription() {
-      try {
-        const token = await getToken();
-        if (!token) {
-          setError("Unable to get authentication token");
-          return;
-        }
-
-        const data = await billingAPI.getSubscription(token);
-        setSubscription(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load billing");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadSubscription();
-  }, [getToken, isLoaded, isSignedIn]);
+  const { data: subscription, isLoading, error } = useSubscription();
+  const checkout = useCheckout();
+  const portal = usePortal();
 
   const handleUpgrade = async (planTier: PlanTier) => {
     if (planTier === "enterprise") {
@@ -120,43 +95,30 @@ export default function BillingPage() {
       return;
     }
 
-    setCheckoutLoading(planTier);
     try {
-      const token = await getToken();
-      if (!token) return;
-
       const successUrl = `${window.location.origin}/dashboard/billing?success=true`;
       const cancelUrl = `${window.location.origin}/dashboard/billing?canceled=true`;
 
-      const { checkout_url } = await billingAPI.createCheckout(
+      const { checkout_url } = await checkout.mutateAsync({
         planTier,
         successUrl,
         cancelUrl,
-        token
-      );
+      });
 
       window.location.href = checkout_url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create checkout");
-    } finally {
-      setCheckoutLoading(null);
+      // Error is handled by React Query
     }
   };
 
   const handleManageSubscription = async () => {
-    setPortalLoading(true);
     try {
-      const token = await getToken();
-      if (!token) return;
-
       const returnUrl = `${window.location.origin}/dashboard/billing`;
-      const { portal_url } = await billingAPI.createPortal(returnUrl, token);
+      const { portal_url } = await portal.mutateAsync(returnUrl);
 
       window.location.href = portal_url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to open portal");
-    } finally {
-      setPortalLoading(false);
+      // Error is handled by React Query
     }
   };
 
@@ -178,7 +140,7 @@ export default function BillingPage() {
           <AlertCircle className="h-5 w-5" />
           <p className="font-medium">Error loading billing</p>
         </div>
-        <p className="mt-1 text-sm opacity-80">{error}</p>
+        <p className="mt-1 text-sm opacity-80">{error instanceof Error ? error.message : "Failed to load billing"}</p>
       </div>
     );
   }
@@ -231,9 +193,9 @@ export default function BillingPage() {
                 size="sm"
                 className="mt-4 gap-2"
                 onClick={handleManageSubscription}
-                disabled={portalLoading}
+                disabled={portal.isPending}
               >
-                {portalLoading ? (
+                {portal.isPending ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 ) : (
                   <ExternalLink className="h-4 w-4" />
@@ -389,9 +351,9 @@ export default function BillingPage() {
                       className="w-full gap-2"
                       variant={plan.highlighted ? "default" : "outline"}
                       onClick={() => handleUpgrade(plan.tier)}
-                      disabled={checkoutLoading === plan.tier}
+                      disabled={checkout.isPending}
                     >
-                      {checkoutLoading === plan.tier ? (
+                      {checkout.isPending ? (
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       ) : (
                         <>

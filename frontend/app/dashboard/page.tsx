@@ -3,65 +3,28 @@
 // Force dynamic rendering to prevent static generation with Clerk hooks
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
 import { Activity, ArrowRight, Phone, Settings, Zap, Link2, AlertCircle, CreditCard } from "lucide-react";
-import { shopAPI, billingAPI, type ShopConfig, type SubscriptionInfo } from "@/lib/api";
+import { useShop } from "@/hooks/shops/use-shop";
+import { useSubscription } from "@/hooks/billing/use-subscription";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [shop, setShop] = useState<ShopConfig | null>(null);
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: shop, isLoading: isShopLoading, error: shopError } = useShop();
+  const { data: subscription, isLoading: isSubscriptionLoading } = useSubscription();
 
+  // Redirect to onboarding if no shop exists
   useEffect(() => {
-    // Wait for Clerk to fully load before making API calls
-    if (!isLoaded) return;
-
-    // Not signed in - middleware should handle redirect, but be safe
-    if (!isSignedIn) {
-      setIsLoading(false);
-      return;
+    if (!isShopLoading && !shop) {
+      router.push("/onboarding");
     }
+  }, [shop, isShopLoading, router]);
 
-    async function loadData() {
-      try {
-        const token = await getToken();
-        if (!token) {
-          setError("Unable to get authentication token");
-          return;
-        }
-
-        const shopData = await shopAPI.getMyShop(token);
-
-        if (!shopData) {
-          router.push("/onboarding");
-          return;
-        }
-
-        setShop(shopData);
-
-        // Load billing info (don't fail if billing isn't set up yet)
-        try {
-          const billingData = await billingAPI.getSubscription(token);
-          setSubscription(billingData);
-        } catch {
-          // Billing might not be set up yet, that's OK
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load shop");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadData();
-  }, [getToken, router, isLoaded, isSignedIn]);
+  const isLoading = isShopLoading || isSubscriptionLoading;
+  const error = shopError;
 
   // Calculate usage status
   const usagePercentage = subscription?.usage.percentage_used ?? 0;
@@ -84,7 +47,7 @@ export default function DashboardPage() {
     return (
       <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-6 text-destructive">
         <p className="font-medium">Error loading dashboard</p>
-        <p className="mt-1 text-sm opacity-80">{error}</p>
+        <p className="mt-1 text-sm opacity-80">{error instanceof Error ? error.message : "Failed to load dashboard"}</p>
       </div>
     );
   }
