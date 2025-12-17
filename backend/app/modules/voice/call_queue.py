@@ -93,8 +93,11 @@ class CallQueue:
             # Check queue size limit (0 = no limit)
             from app.modules.shops.service import get_shop_config_by_id
 
-            shop_config = await get_shop_config_by_id(shop_id)
-            max_size = shop_config.settings.max_queue_size if shop_config else 5
+            try:
+                shop_config = await get_shop_config_by_id(shop_id)
+                max_size = shop_config.settings.max_queue_size
+            except Exception:
+                max_size = 5  # Default fallback
 
             if max_size > 0 and queue.qsize() >= max_size:
                 logger.warning(
