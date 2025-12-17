@@ -25,3 +25,14 @@ PLAN_PRICES: dict[PlanTier, int] = {
     PlanTier.PROFESSIONAL: 99,
     PlanTier.ENTERPRISE: 0,  # Custom pricing
 }
+
+# Concurrent call limits per shop (based on plan tier)
+CONCURRENT_CALL_LIMITS: dict[PlanTier, int] = {
+    PlanTier.FREE: 1,
+    PlanTier.STARTER: 3,
+    PlanTier.PROFESSIONAL: 10,
+    PlanTier.ENTERPRISE: 50,
+}
+
+# Global maximum concurrent calls across all shops (safety cap)
+MAX_GLOBAL_CONCURRENT_CALLS: int = 100

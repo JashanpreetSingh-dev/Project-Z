@@ -20,16 +20,22 @@ from app.modules.context.service import update_context_from_call, update_context
 from app.modules.shops.models import ShopConfig
 from app.modules.shops.service import get_shop_config_by_id, get_shop_config_by_phone
 from app.modules.sms.service import SmsService
+from app.modules.voice.call_queue import get_call_queue
 from app.modules.voice.intents import TOOL_TO_INTENT_MAPPING
 from app.modules.voice.prompts import get_system_prompt
 from app.modules.voice.realtime import RealtimeEventType
 from app.modules.voice.realtime_session import RealtimeSession, SessionState
+from app.modules.voice.session_manager import get_session_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Settings loaded once at module level
 _settings = get_settings()
+
+# Get global instances
+_session_manager = get_session_manager()
+_call_queue = get_call_queue()
 
 
 # =============================================================================
@@ -183,6 +189,10 @@ class TwilioRealtimeSession(RealtimeSession):
         # Calculate duration before stopping
         duration = int(time.time() - self._start_time) if self._start_time else 0
 
+        # Unregister session before stopping
+        if self.shop_id:
+            await _session_manager.unregister_session(self.shop_id, self.call_sid)
+
         # Stop the base session
         await super().stop()
 
@@ -197,6 +207,12 @@ class TwilioRealtimeSession(RealtimeSession):
             self._metrics.total_audio_out_bytes,
             len(self._metrics.tool_calls),
         )
+
+        # Process queue for this shop (non-blocking)
+        if self.shop_id:
+            import asyncio
+
+            asyncio.create_task(_process_queue_for_shop(self.shop_id))
 
     # -------------------------------------------------------------------------
     # Twilio Message Handling
@@ -215,10 +231,16 @@ class TwilioRealtimeSession(RealtimeSession):
 
         elif event == "start":
             self.stream_sid = message.get("start", {}).get("streamSid")
+            # Register session with session manager
+            if self.shop_id:
+                await _session_manager.register_session(self.shop_id, self.call_sid)
             try:
                 await self.start()
             except Exception as e:
                 logger.exception("Failed to start session for call %s: %s", self.call_sid, e)
+                # Unregister on error
+                if self.shop_id:
+                    await _session_manager.unregister_session(self.shop_id, self.call_sid)
                 # Set error state but don't raise - allow WebSocket to stay connected
                 # The call will continue but won't process audio
                 await self._set_state(SessionState.ERROR)
@@ -418,12 +440,59 @@ def _quota_exceeded_response(shop_name: str) -> Response:
     return Response(content=str(response), media_type="application/xml")
 
 
+def _busy_response(shop_name: str) -> Response:
+    """Generate TwiML response when all lines are busy."""
+    from twilio.twiml.voice_response import VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+    response = VoiceResponse()
+    response.say(
+        f"Thank you for calling {shop_name}. "
+        "All our lines are currently busy. Please try again in a few moments. Goodbye.",
+        voice="Polly.Joanna",
+    )
+    response.hangup()
+    return Response(content=str(response), media_type="application/xml")
+
+
+def _transfer_to_human_response(transfer_number: str) -> Response:
+    """Generate TwiML response to transfer call to human."""
+    from twilio.twiml.voice_response import Dial, VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+    response = VoiceResponse()
+    response.say(
+        "All our AI assistants are busy. Transferring you to a representative now.",
+        voice="Polly.Joanna",
+    )
+    dial = Dial()
+    dial.number(transfer_number)
+    response.append(dial)
+    return Response(content=str(response), media_type="application/xml")
+
+
+def _queue_response(shop_id: str, call_sid: str, base_url: str) -> Response:
+    """Generate TwiML response to enqueue the call."""
+    from twilio.twiml.voice_response import Enqueue, VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+    response = VoiceResponse()
+    response.say(
+        "Thank you for calling. All our assistants are currently helping other customers. "
+        "Please hold and you will be connected shortly.",
+        voice="Polly.Joanna",
+    )
+    # Enqueue with webhook URL for queue processing
+    queue_url = f"{base_url}/api/twilio/queue/process"
+    enqueue = Enqueue(name=shop_id, wait_url=queue_url)
+    enqueue.parameter(name="callSid", value=call_sid)
+    response.append(enqueue)
+    return Response(content=str(response), media_type="application/xml")
+
+
 @router.post("/incoming")
 async def handle_incoming_call(request: Request) -> Response:
     """Handle incoming Twilio call webhook.
 
     Returns TwiML instructing Twilio to open a bidirectional media stream.
-    Checks quota before accepting the call.
+    Checks quota and concurrent limits before accepting the call.
     """
     from twilio.twiml.voice_response import Connect, Stream, VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
 
@@ -434,8 +503,16 @@ async def handle_incoming_call(request: Request) -> Response:
 
     logger.info("Incoming call: sid=%s from=%s to=%s", call_sid, from_number, to_number)
 
+    # Build base URL for webhooks
+    base_url = _settings.twilio_webhook_base_url
+    if not base_url:
+        host = request.headers.get("host", "localhost:8000")
+        base_url = f"https://{host}"
+
     # Look up shop by phone number to check quota
     shop_config = await get_shop_config_by_phone(str(to_number))
+    shop_id: str | None = None
+    shop_name = "our business"
 
     if shop_config and shop_config.id:
         shop_id = str(shop_config.id)
@@ -455,20 +532,59 @@ async def handle_incoming_call(request: Request) -> Response:
         except Exception as e:
             # If quota check fails, allow the call (fail open for better UX)
             logger.error("Quota check failed for shop %s: %s", shop_id, e)
-    else:
-        shop_name = "our business"
 
-    # Build WebSocket URL
-    base_url = _settings.twilio_webhook_base_url
-    if not base_url:
-        host = request.headers.get("host", "localhost:8000")
-        base_url = f"https://{host}"
+        # Check concurrent call limit
+        can_accept, reason = await _session_manager.can_accept_call(shop_id, shop_config)
+        if not can_accept:
+            logger.info(
+                "Concurrent limit reached for shop %s (%s): %s. Call: %s",
+                shop_name,
+                shop_id,
+                reason,
+                call_sid,
+            )
 
+            # Check if queuing is enabled
+            if shop_config.settings.queue_when_limit_reached:
+                # Try to enqueue the call
+                queue_timeout = shop_config.settings.queue_timeout_seconds
+                enqueued = await _call_queue.enqueue(
+                    call_sid=call_sid,
+                    from_number=from_number,
+                    to_number=to_number,
+                    shop_id=shop_id,
+                    timeout_seconds=queue_timeout,
+                )
+
+                if enqueued:
+                    logger.info("Call %s queued for shop %s", call_sid, shop_id)
+                    return _queue_response(shop_id, call_sid, base_url)
+                else:
+                    # Queue is full, fall through to transfer/reject
+                    logger.warning("Queue full for shop %s, call %s", shop_id, call_sid)
+
+            # Queue disabled or full - try to transfer to human
+            transfer_number = (
+                shop_config.settings.transfer_number or _settings.default_transfer_number
+            )
+            if transfer_number:
+                logger.info(
+                    "Transferring call %s to human (%s) due to concurrent limit",
+                    call_sid,
+                    transfer_number,
+                )
+                return _transfer_to_human_response(transfer_number)
+            else:
+                # No transfer number, return busy message
+                logger.warning("No transfer number configured for shop %s, rejecting call", shop_id)
+                return _busy_response(shop_name)
+
+    # Can accept call - proceed with normal flow
     # Convert https:// to wss:// for WebSocket
     ws_base = base_url.replace("https://", "wss://").replace("http://", "ws://")
     ws_url = f"{ws_base}/api/twilio/media-stream"
 
-    logger.info("Media stream URL: %s", ws_url)
+    logger.info("Accepting call %s, media stream URL: %s", call_sid, ws_url)
 
     # Generate TwiML
     response = VoiceResponse()
@@ -534,6 +650,93 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
     finally:
         if session:
             await session.stop()
+
+
+async def _process_queue_for_shop(shop_id: str) -> None:
+    """Process the queue for a shop when capacity becomes available.
+
+    Args:
+        shop_id: Shop ID to process queue for.
+    """
+    try:
+        # Check if we can accept more calls
+        shop_config = await get_shop_config_by_id(shop_id)
+        if not shop_config:
+            return
+
+        can_accept, _ = await _session_manager.can_accept_call(shop_id, shop_config)
+        if not can_accept:
+            return  # Still at capacity
+
+        # Try to dequeue next call
+        queued_call = await _call_queue.dequeue(shop_id)
+        if not queued_call:
+            return  # No calls in queue
+
+        logger.info("Processing queued call: %s for shop %s", queued_call.call_sid, shop_id)
+
+        # Build TwiML to connect the queued call to media stream
+        base_url = _settings.twilio_webhook_base_url
+        if not base_url:
+            base_url = "https://localhost:8000"  # Fallback
+
+        ws_base = base_url.replace("https://", "wss://").replace("http://", "ws://")
+        ws_url = f"{ws_base}/api/twilio/media-stream"
+
+        # Use Twilio REST API to redirect the call out of queue
+        from twilio.rest import Client  # type: ignore[import-untyped]  # noqa: I001
+
+        client = Client(_settings.twilio_account_sid, _settings.twilio_auth_token)
+
+        from twilio.twiml.voice_response import Connect, Stream, VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+        response = VoiceResponse()
+        # Connect to media stream (this will redirect the call out of queue)
+        connect = Connect()
+        stream = Stream(url=ws_url)
+        stream.parameter(name="callSid", value=queued_call.call_sid)
+        stream.parameter(name="fromNumber", value=queued_call.from_number)
+        stream.parameter(name="toNumber", value=queued_call.to_number)
+        connect.append(stream)
+        response.append(connect)
+
+        # Update the call with new TwiML (this redirects it out of queue automatically)
+        client.calls(queued_call.call_sid).update(twiml=str(response))
+        logger.info("Queued call %s redirected to media stream", queued_call.call_sid)
+
+    except Exception as e:
+        logger.exception("Error processing queue for shop %s: %s", shop_id, e)
+
+
+@router.post("/queue/process")
+async def handle_queue_processing(request: Request) -> Response:
+    """Handle Twilio queue webhook events (wait_url).
+
+    This endpoint is called by Twilio periodically while a call is in queue.
+    We check if capacity is available and redirect the call if so.
+    """
+    from twilio.twiml.voice_response import VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+    form = await request.form()
+    call_sid = form.get("CallSid", "")
+    queue_name = form.get("QueueName", "")  # This is the shop_id we passed
+    queue_position = form.get("QueuePosition", "")
+
+    logger.debug(
+        "Queue wait check: call=%s queue=%s position=%s",
+        call_sid,
+        queue_name,
+        queue_position,
+    )
+
+    # Try to process queue for this shop
+    if queue_name:
+        await _process_queue_for_shop(queue_name)
+
+    # Return empty TwiML - Twilio will continue waiting in queue
+    # If we redirected the call via REST API, it will leave the queue
+    response = VoiceResponse()
+    return Response(content=str(response), media_type="application/xml")
 
 
 @router.post("/status")

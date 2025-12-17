@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     debug: bool = False
     log_level: str = "INFO"
 
+    # Concurrent Call Management
+    max_global_concurrent_calls: int = 100
+    queue_processing_interval_seconds: int = 5
+
 
 @lru_cache
 def get_settings() -> Settings:

@@ -67,6 +67,20 @@ class ShopSettings(BaseModel):
     calendar_settings: CalendarSettings = Field(
         default_factory=CalendarSettings, description="Calendar integration settings"
     )
+    max_concurrent_calls: int | None = Field(
+        default=None,
+        ge=1,
+        description="Override default plan limit for concurrent calls (optional)",
+    )
+    queue_when_limit_reached: bool = Field(
+        default=True, description="Enable call queuing when concurrent limit is reached"
+    )
+    max_queue_size: int = Field(
+        default=5, ge=0, description="Maximum calls in queue before rejecting (0 = no limit)"
+    )
+    queue_timeout_seconds: int = Field(
+        default=60, ge=10, le=300, description="Maximum wait time in queue before timeout"
+    )
 
 
 class AdapterCredentials(BaseModel):

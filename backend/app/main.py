@@ -19,6 +19,7 @@ from app.modules.calls.router import router as calls_router
 from app.modules.context.router import router as context_router
 from app.modules.shops.router import router as shops_router
 from app.modules.sms.router import router as sms_router
+from app.modules.voice.call_queue import get_call_queue
 from app.modules.voice.router import router as voice_router
 from app.modules.voice.telephony import router as twilio_router
 
@@ -36,10 +37,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     logger.info("Starting Akseli Voice Receptionist API...")
     await init_db()
+
+    # Start call queue cleanup task
+    call_queue = get_call_queue()
+    await call_queue.start_cleanup_task()
+    logger.info("Call queue cleanup task started")
+
     logger.info("Application started successfully")
     yield
     # Shutdown
     logger.info("Shutting down...")
+
+    # Stop call queue cleanup task
+    await call_queue.stop_cleanup_task()
+    logger.info("Call queue cleanup task stopped")
+
     await close_db()
 
 
