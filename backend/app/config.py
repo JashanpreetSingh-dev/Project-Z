@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     # App Settings
     debug: bool = False
     log_level: str = "INFO"
+    queue_processing_interval_seconds: int = 30  # Interval for queue cleanup task
+    max_global_concurrent_calls: int = 100  # Global limit for concurrent calls across all shops
 
 
 @lru_cache

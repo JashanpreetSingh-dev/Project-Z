@@ -25,3 +25,11 @@ PLAN_PRICES: dict[PlanTier, int] = {
     PlanTier.PROFESSIONAL: 99,
     PlanTier.ENTERPRISE: 0,  # Custom pricing
 }
+
+# Concurrent call limits per plan tier
+CONCURRENT_CALL_LIMITS: dict[PlanTier, int] = {
+    PlanTier.FREE: 1,
+    PlanTier.STARTER: 2,
+    PlanTier.PROFESSIONAL: 5,
+    PlanTier.ENTERPRISE: 10,
+}

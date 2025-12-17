@@ -67,6 +67,12 @@ class ShopSettings(BaseModel):
     calendar_settings: CalendarSettings = Field(
         default_factory=CalendarSettings, description="Calendar integration settings"
     )
+    max_queue_size: int = Field(
+        default=5, ge=0, description="Maximum queue size (0 = no limit)"
+    )
+    max_concurrent_calls: int | None = Field(
+        default=None, ge=1, description="Maximum concurrent calls (None = use plan limit)"
+    )
 
 
 class AdapterCredentials(BaseModel):
