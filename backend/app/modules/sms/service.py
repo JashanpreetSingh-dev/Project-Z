@@ -6,10 +6,10 @@ from typing import Any
 from twilio.rest import Client  # type: ignore[import-untyped]
 
 from app.config import get_settings
-from app.modules.calls.models import CallIntent, CallLog, CallOutcome
+from app.modules.calls.models import CallIntent, CallLog
 from app.modules.shops.models import ShopConfig
-from app.modules.sms.models import SmsOptOut
 from app.modules.shops.service import normalize_phone
+from app.modules.sms.models import SmsOptOut
 
 logger = logging.getLogger(__name__)
 _settings = get_settings()
@@ -21,9 +21,7 @@ class SmsService:
     def __init__(self) -> None:
         """Initialize Twilio client."""
         if _settings.twilio_account_sid and _settings.twilio_auth_token:
-            self.client = Client(
-                _settings.twilio_account_sid, _settings.twilio_auth_token
-            )
+            self.client = Client(_settings.twilio_account_sid, _settings.twilio_auth_token)
         else:
             self.client = None
             logger.warning("Twilio credentials not configured, SMS will be disabled")
@@ -39,14 +37,10 @@ class SmsService:
             True if opted out, False otherwise
         """
         normalized = normalize_phone(phone_number)
-        opt_out = await SmsOptOut.find_one(
-            {"phone_number": normalized, "shop_id": shop_id}
-        )
+        opt_out = await SmsOptOut.find_one({"phone_number": normalized, "shop_id": shop_id})
         return opt_out is not None
 
-    def generate_call_summary(
-        self, call_log: CallLog, shop_config: ShopConfig
-    ) -> str:
+    def generate_call_summary(self, call_log: CallLog, shop_config: ShopConfig) -> str:
         """Generate a brief, customer-friendly SMS summary of the call.
 
         Args:
@@ -73,9 +67,7 @@ class SmsService:
             # Generic fallback
             return f"Thanks for calling {shop_name}! We're here to help."
 
-    def _generate_status_summary(
-        self, tool_results: dict[str, Any], shop_name: str
-    ) -> str:
+    def _generate_status_summary(self, tool_results: dict[str, Any], shop_name: str) -> str:
         """Generate detailed status summary from tool results."""
         if not tool_results.get("success"):
             return f"Thanks for calling {shop_name}! We'll update you when your vehicle is ready."
@@ -115,14 +107,22 @@ class SmsService:
 
         # Handle different statuses
         if status in ["READY", "COMPLETE", "FINISHED"]:
-            msg = f"Hi! {vehicle_info} is ready for pickup" if vehicle_info else "Hi! Your vehicle is ready for pickup"
+            msg = (
+                f"Hi! {vehicle_info} is ready for pickup"
+                if vehicle_info
+                else "Hi! Your vehicle is ready for pickup"
+            )
             if order_id:
                 msg += f" (Order {order_id})"
             msg += f". Thanks for calling {shop_name}!"
             return msg
 
         elif status == "WAITING_PARTS":
-            msg = f"{vehicle_info} is waiting for parts" if vehicle_info else "Your vehicle is waiting for parts"
+            msg = (
+                f"{vehicle_info} is waiting for parts"
+                if vehicle_info
+                else "Your vehicle is waiting for parts"
+            )
             notes = order_data.get("notes", "")
             if notes:
                 msg += f". {notes}"
@@ -134,7 +134,7 @@ class SmsService:
             services = order_data.get("services", [])
             completed_services = []
             in_progress_services = []
-            
+
             if isinstance(services, list):
                 for svc in services:
                     if isinstance(svc, dict):
@@ -148,7 +148,7 @@ class SmsService:
             msg_parts = []
             if vehicle_info:
                 msg_parts.append(f"{vehicle_info}")
-            
+
             if completed_services:
                 msg_parts.append(f"Completed: {', '.join(completed_services[:2])}")
             if in_progress_services:
@@ -159,6 +159,7 @@ class SmsService:
             if est_completion:
                 try:
                     from datetime import datetime
+
                     est_dt = datetime.fromisoformat(est_completion.replace("Z", "+00:00"))
                     est_time = est_dt.strftime("%I:%M %p")
                     msg_parts.append(f"Est. ready: {est_time}")
@@ -168,22 +169,28 @@ class SmsService:
             if msg_parts:
                 msg = ". ".join(msg_parts) + f". Thanks for calling {shop_name}!"
             else:
-                msg = f"{vehicle_info} is in progress" if vehicle_info else "Your vehicle is in progress"
+                msg = (
+                    f"{vehicle_info} is in progress"
+                    if vehicle_info
+                    else "Your vehicle is in progress"
+                )
                 msg += f". We'll update you when it's ready. Thanks for calling {shop_name}!"
             return msg
 
         else:
             # PENDING or other status
-            msg = f"{vehicle_info} status: {status.replace('_', ' ').title()}" if vehicle_info else f"Status: {status.replace('_', ' ').title()}"
+            msg = (
+                f"{vehicle_info} status: {status.replace('_', ' ').title()}"
+                if vehicle_info
+                else f"Status: {status.replace('_', ' ').title()}"
+            )
             notes = order_data.get("notes", "")
             if notes:
                 msg += f". {notes}"
             msg += f". Thanks for calling {shop_name}!"
             return msg
 
-    def _generate_hours_summary(
-        self, tool_results: dict[str, Any], shop_name: str
-    ) -> str:
+    def _generate_hours_summary(self, tool_results: dict[str, Any], shop_name: str) -> str:
         """Generate business hours summary."""
         hours = tool_results.get("hours", {})
         if isinstance(hours, dict):
@@ -197,12 +204,24 @@ class SmsService:
         # Handle structured format (monday, tuesday, etc.)
         if "monday" in hours or "mon" in hours:
             day_map = {
-                "monday": "Mon", "tuesday": "Tue", "wednesday": "Wed",
-                "thursday": "Thu", "friday": "Fri", "saturday": "Sat", "sunday": "Sun"
+                "monday": "Mon",
+                "tuesday": "Tue",
+                "wednesday": "Wed",
+                "thursday": "Thu",
+                "friday": "Fri",
+                "saturday": "Sat",
+                "sunday": "Sun",
             }
-            short_map = {"mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", 
-                        "fri": "Fri", "sat": "Sat", "sun": "Sun"}
-            
+            short_map = {
+                "mon": "Mon",
+                "tue": "Tue",
+                "wed": "Wed",
+                "thu": "Thu",
+                "fri": "Fri",
+                "sat": "Sat",
+                "sun": "Sun",
+            }
+
             formatted_days = []
             for day_key, day_label in {**day_map, **short_map}.items():
                 day_hours = hours.get(day_key, {})
@@ -213,14 +232,15 @@ class SmsService:
                     close_time = day_hours.get("close")
                     if open_time and close_time:
                         formatted_days.append(f"{day_label} {open_time}-{close_time}")
-            
+
             if formatted_days:
                 # Group consecutive days with same hours
                 if len(formatted_days) >= 5:
                     # Check if Mon-Fri are same
                     mon_fri_same = all(
-                        hours.get("monday", {}).get("open") == hours.get("friday", {}).get("open") if "monday" in hours else
-                        hours.get("mon", {}).get("open") == hours.get("fri", {}).get("open")
+                        hours.get("monday", {}).get("open") == hours.get("friday", {}).get("open")
+                        if "monday" in hours
+                        else hours.get("mon", {}).get("open") == hours.get("fri", {}).get("open")
                     )
                     if mon_fri_same:
                         mon_hours = formatted_days[0].split(" ", 1)[1] if formatted_days else ""
@@ -231,12 +251,10 @@ class SmsService:
                             result += f", {formatted_days[6]}"
                         return result
                 return ", ".join(formatted_days)
-        
+
         return "Mon-Fri 8am-6pm, Sat 9am-2pm"  # Fallback
 
-    def _generate_location_summary(
-        self, tool_results: dict[str, Any], shop_name: str
-    ) -> str:
+    def _generate_location_summary(self, tool_results: dict[str, Any], shop_name: str) -> str:
         """Generate detailed location summary."""
         location = tool_results.get("location", {})
         if isinstance(location, dict):
@@ -245,7 +263,7 @@ class SmsService:
             state = location.get("state")
             zip_code = location.get("zip_code")
             directions = location.get("directions")
-            
+
             if address:
                 parts = [address]
                 if city:
@@ -255,7 +273,7 @@ class SmsService:
                 if zip_code:
                     parts.append(zip_code)
                 addr_str = ", ".join(parts)
-                
+
                 msg = f"We're at {addr_str}"
                 if directions:
                     msg += f". {directions}"
@@ -263,16 +281,13 @@ class SmsService:
                 return msg
         return f"Thanks for calling {shop_name}! We're here to help."
 
-    def _generate_services_summary(
-        self, tool_results: dict[str, Any], shop_name: str
-    ) -> str:
+    def _generate_services_summary(self, tool_results: dict[str, Any], shop_name: str) -> str:
         """Generate detailed services summary."""
         services = tool_results.get("services", [])
         if isinstance(services, list) and services:
             # List more services (up to 5 for better detail)
             service_names = [
-                s.get("name", s) if isinstance(s, dict) else str(s)
-                for s in services[:5]
+                s.get("name", s) if isinstance(s, dict) else str(s) for s in services[:5]
             ]
             services_str = ", ".join(service_names)
             if len(services) > 5:
@@ -345,13 +360,9 @@ class SmsService:
         """
         # Check if customer has opted out
         if call_log.caller_number and call_log.shop_id:
-            is_opted_out = await self.is_opted_out(
-                call_log.caller_number, call_log.shop_id
-            )
+            is_opted_out = await self.is_opted_out(call_log.caller_number, call_log.shop_id)
             if is_opted_out:
-                logger.info(
-                    "Skipping SMS to %s (opted out)", call_log.caller_number
-                )
+                logger.info("Skipping SMS to %s (opted out)", call_log.caller_number)
                 return False
 
         # Generate summary
@@ -362,9 +373,6 @@ class SmsService:
 
         # Send SMS
         if call_log.caller_number:
-            return await self.send_sms(
-                call_log.caller_number, summary, from_number
-            )
+            return await self.send_sms(call_log.caller_number, summary, from_number)
 
         return False
-

@@ -10,9 +10,7 @@ from app.modules.shops.service import normalize_phone
 logger = logging.getLogger(__name__)
 
 
-async def get_customer_context(
-    phone_number: str, shop_id: str
-) -> CustomerContext | None:
+async def get_customer_context(phone_number: str, shop_id: str) -> CustomerContext | None:
     """Get customer context by phone number and shop ID.
 
     Args:
@@ -23,15 +21,11 @@ async def get_customer_context(
         CustomerContext if found, None otherwise
     """
     normalized = normalize_phone(phone_number)
-    context = await CustomerContext.find_one(
-        {"phone_number": normalized, "shop_id": shop_id}
-    )
+    context = await CustomerContext.find_one({"phone_number": normalized, "shop_id": shop_id})
     return context
 
 
-async def get_or_create_customer_context(
-    phone_number: str, shop_id: str
-) -> CustomerContext:
+async def get_or_create_customer_context(phone_number: str, shop_id: str) -> CustomerContext:
     """Get or create customer context.
 
     Args:
@@ -67,9 +61,7 @@ async def update_context_from_call(call_log: CallLog) -> None:
         return
 
     try:
-        context = await get_or_create_customer_context(
-            call_log.caller_number, call_log.shop_id
-        )
+        context = await get_or_create_customer_context(call_log.caller_number, call_log.shop_id)
 
         # Create interaction record
         interaction = InteractionRecord(
@@ -105,9 +97,7 @@ async def update_context_from_call(call_log: CallLog) -> None:
         logger.exception("Failed to update context from call: %s", e)
 
 
-async def update_context_from_sms(
-    phone_number: str, shop_id: str, summary: str
-) -> None:
+async def update_context_from_sms(phone_number: str, shop_id: str, summary: str) -> None:
     """Update customer context with SMS information.
 
     Args:
@@ -216,4 +206,3 @@ def _update_known_info(context: CustomerContext, tool_results: dict[str, Any]) -
                             )
                             if not vehicle_exists:
                                 vehicles.append(vehicle)
-

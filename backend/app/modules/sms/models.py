@@ -22,4 +22,3 @@ class SmsOptOut(Document):
 
     def __str__(self) -> str:
         return f"SmsOptOut({self.phone_number}, shop={self.shop_id})"
-

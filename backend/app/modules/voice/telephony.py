@@ -390,7 +390,9 @@ class TwilioRealtimeSession(RealtimeSession):
                                 summary,
                             )
                         else:
-                            logger.debug("SMS not sent for call %s (opted out or error)", self.call_sid)
+                            logger.debug(
+                                "SMS not sent for call %s (opted out or error)", self.call_sid
+                            )
                 except Exception as e:
                     logger.exception("Failed to send SMS summary: %s", e)
 

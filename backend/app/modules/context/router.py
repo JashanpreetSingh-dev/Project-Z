@@ -42,9 +42,6 @@ async def get_customer_context_endpoint(
     # Get context
     context = await get_customer_context(normalized, str(shop_config.id))
     if not context:
-        raise HTTPException(
-            status_code=404, detail="Customer context not found"
-        )
+        raise HTTPException(status_code=404, detail="Customer context not found")
 
     return context
-

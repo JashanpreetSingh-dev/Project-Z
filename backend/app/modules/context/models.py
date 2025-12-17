@@ -39,4 +39,3 @@ class CustomerContext(Document):
 
     def __str__(self) -> str:
         return f"CustomerContext({self.phone_number}, shop={self.shop_id})"
-
