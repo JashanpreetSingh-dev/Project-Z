@@ -3,8 +3,8 @@ import { ArrowRight, Shield, Zap, Heart, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "About - Voice AI",
-  description: "Learn about Voice AI and our mission to help auto shops never miss a customer call.",
+  title: "About - Akseli",
+  description: "Learn about Akseli and our mission to help auto shops never miss a customer call.",
 };
 
 export default function AboutPage() {
@@ -77,7 +77,7 @@ export default function AboutPage() {
               Our Approach
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              We built Voice AI with a different philosophy than other AI tools.
+              We built Akseli with a different philosophy than other AI tools.
             </p>
           </div>
 
@@ -88,7 +88,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-semibold">Purpose-Built</h3>
               <p className="mt-3 text-muted-foreground">
-                We&apos;re not a generic AI trying to do everything. Voice AI is built
+                We&apos;re not a generic AI trying to do everything. Akseli is built
                 specifically for auto shops, understanding the unique needs of your
                 business and your customers.
               </p>
@@ -187,7 +187,7 @@ export default function AboutPage() {
             Ready to Join Us?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            See how Voice AI can help your shop never miss another call.
+            See how Akseli can help your shop never miss another call.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button size="lg" className="gradient-bg border-0 h-12 px-8 text-base glow" asChild>

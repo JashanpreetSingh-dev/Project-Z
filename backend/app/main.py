@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan handler for startup/shutdown."""
     # Startup
-    logger.info("Starting Voice Receptionist API...")
+    logger.info("Starting Akseli Voice Receptionist API...")
     await init_db()
     logger.info("Application started successfully")
     yield
@@ -48,8 +48,8 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     app = FastAPI(
-        title="Voice Receptionist API",
-        description="AI-powered phone receptionist for auto shops",
+        title="Akseli API",
+        description="Akseli – AI-powered phone receptionist for auto shops",
         version="0.1.0",
         lifespan=lifespan,
         debug=settings.debug,
@@ -68,7 +68,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router, tags=["Health"])
     app.include_router(shops_router, prefix="/api/shops", tags=["Shop Config"])
     app.include_router(calls_router, prefix="/api/calls", tags=["Call Logs"])
-    app.include_router(voice_router, prefix="/api/voice", tags=["Voice AI"])
+    app.include_router(voice_router, prefix="/api/voice", tags=["Akseli Voice"])
     app.include_router(twilio_router, prefix="/api/twilio", tags=["Twilio Telephony"])
     app.include_router(billing_router, prefix="/api/billing", tags=["Billing"])
     app.include_router(context_router, prefix="/api/context", tags=["Customer Context"])

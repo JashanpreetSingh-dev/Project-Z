@@ -15,11 +15,11 @@ import {
 } from "@/components/animations";
 
 export const metadata: Metadata = {
-  title: "Voice AI - AI Phone Receptionist for Auto Shops",
-  description: "Never miss a customer call again. Voice AI handles repair status inquiries, business hours, and more—24/7, with human-like conversation.",
+  title: "Akseli – Voice AI Phone Receptionist for Auto Shops",
+  description: "Never miss a customer call again. Akseli is your Voice AI that handles repair status inquiries, business hours, and more—24/7, with human-like conversation.",
   openGraph: {
-    title: "Voice AI - AI Phone Receptionist for Auto Shops",
-    description: "Never miss a customer call again. Voice AI handles repair status inquiries, business hours, and more—24/7.",
+    title: "Akseli – Voice AI Phone Receptionist for Auto Shops",
+    description: "Never miss a customer call again. Akseli handles repair status inquiries, business hours, and more—24/7.",
     type: "website",
   },
 };

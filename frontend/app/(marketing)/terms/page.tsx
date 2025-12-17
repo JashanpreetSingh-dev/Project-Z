@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service - Voice AI",
-  description: "Voice AI's terms of service. Read our terms and conditions for using our AI phone receptionist service.",
+  title: "Terms of Service - Akseli",
+  description: "Akseli's terms of service. Read our terms and conditions for using our AI phone receptionist service.",
 };
 
 export default function TermsPage() {
@@ -19,7 +19,7 @@ export default function TermsPage() {
           <div className="rounded-xl border bg-card p-6 space-y-4">
             <h2 className="text-xl font-semibold">Agreement to Terms</h2>
             <p className="text-muted-foreground">
-              By accessing or using Voice AI&apos;s services, you agree to be bound by these Terms 
+              By accessing or using Akseli&apos;s services, you agree to be bound by these Terms 
               of Service. If you disagree with any part of the terms, you may not access our service.
             </p>
           </div>
@@ -27,7 +27,7 @@ export default function TermsPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Description of Service</h2>
             <p className="text-muted-foreground">
-              Voice AI provides an AI-powered phone receptionist service designed for auto repair shops. 
+              Akseli provides an AI-powered phone receptionist service designed for auto repair shops. 
               Our service answers incoming phone calls and provides information based on data you provide.
             </p>
           </div>
@@ -45,7 +45,7 @@ export default function TermsPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Service Limitations</h2>
             <p className="text-muted-foreground">
-              Voice AI is designed to handle routine customer inquiries. It is not a replacement 
+              Akseli is designed to handle routine customer inquiries. It is not a replacement 
               for professional advice, emergency services, or complex customer service situations. 
               The AI will transfer calls to your team when it cannot confidently answer a question.
             </p>
@@ -63,8 +63,8 @@ export default function TermsPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Intellectual Property</h2>
             <p className="text-muted-foreground">
-              The Voice AI service, including its technology, branding, and content, is owned 
-              by Voice AI and protected by intellectual property laws. You retain ownership of 
+              The Akseli service, including its technology, branding, and content, is owned 
+              by Akseli and protected by intellectual property laws. You retain ownership of 
               all data you upload to the service.
             </p>
           </div>
@@ -72,7 +72,7 @@ export default function TermsPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Limitation of Liability</h2>
             <p className="text-muted-foreground">
-              Voice AI shall not be liable for any indirect, incidental, special, consequential, 
+              Akseli shall not be liable for any indirect, incidental, special, consequential, 
               or punitive damages resulting from your use of the service.
             </p>
           </div>

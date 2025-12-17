@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Zap, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Features", href: "/#features" },
@@ -14,6 +15,15 @@ const navItems = [
 
 export function MarketingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showFullLogo, setShowFullLogo] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowFullLogo(true);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
@@ -24,7 +34,30 @@ export function MarketingHeader() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-bg">
               <Zap className="h-4 w-4 text-white" />
             </div>
-            <span className="text-lg font-semibold">Voice AI</span>
+            <div className="relative h-6 w-[4.5rem] overflow-hidden">
+              {/* Initial "AI" */}
+              <span
+                className={cn(
+                  "absolute inset-0 text-lg font-semibold text-foreground transition-all duration-300",
+                  showFullLogo
+                    ? "opacity-0 -translate-y-2 scale-95"
+                    : "opacity-100 translate-y-0 scale-100"
+                )}
+              >
+                AI
+              </span>
+              {/* Expanded "Akseli" */}
+              <span
+                className={cn(
+                  "absolute inset-0 text-lg font-semibold text-foreground transition-all duration-300",
+                  showFullLogo
+                    ? "opacity-100 translate-y-0 scale-100"
+                    : "opacity-0 translate-y-2 scale-95"
+                )}
+              >
+                Akseli
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation - Centered */}
