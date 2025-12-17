@@ -10,6 +10,7 @@ export default function SignInPage() {
       </div>
       
       <SignIn
+        fallbackRedirectUrl="/dashboard"
         appearance={{
           elements: {
             rootBox: "relative z-10",

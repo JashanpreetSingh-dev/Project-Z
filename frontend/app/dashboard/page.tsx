@@ -8,20 +8,24 @@ import { useRouter } from "next/navigation";
 import { Activity, ArrowRight, Phone, Settings, Zap, Link2, AlertCircle, CreditCard } from "lucide-react";
 import { useShop } from "@/hooks/shops/use-shop";
 import { useSubscription } from "@/hooks/billing/use-subscription";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { data: shop, isLoading: isShopLoading, error: shopError } = useShop();
+  const { isLoaded: isAuthLoaded } = useAuth();
+  const { data: shop, isLoading: isShopLoading, error: shopError, status: shopStatus } = useShop();
   const { data: subscription, isLoading: isSubscriptionLoading } = useSubscription();
 
-  // Redirect to onboarding if no shop exists
+  // Redirect to onboarding if no shop exists (only if auth is loaded, query has finished, and there's no error)
   useEffect(() => {
-    if (!isShopLoading && !shop) {
+    // Only redirect if auth is loaded AND query has completed (success or error status)
+    const queryFinished = isAuthLoaded && (shopStatus === 'success' || shopStatus === 'error');
+    if (queryFinished && !shop && !shopError) {
       router.push("/onboarding");
     }
-  }, [shop, isShopLoading, router]);
+  }, [shop, shopError, shopStatus, isAuthLoaded, router]);
 
   const isLoading = isShopLoading || isSubscriptionLoading;
   const error = shopError;
