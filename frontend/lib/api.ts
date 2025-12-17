@@ -43,6 +43,19 @@ async function fetchAPI<T>(
 // Shop API
 // ============================================
 
+export interface CalendarSettings {
+  mode: "read_only" | "booking_enabled";
+  provider: "none" | "google";
+  calendar_id: string;
+  default_duration_minutes: number;
+  business_hours_only: boolean;
+  credentials?: {
+    connected?: boolean;
+    email?: string;
+    [key: string]: unknown;
+  };
+}
+
 export interface ShopSettings {
   ai_enabled: boolean;
   transfer_number: string | null;
@@ -51,6 +64,7 @@ export interface ShopSettings {
   max_call_duration_seconds: number;
   sms_call_summary_enabled: boolean;
   sms_from_number: string | null;
+  calendar_settings?: CalendarSettings;
 }
 
 export interface ShopConfig {
@@ -293,4 +307,47 @@ export const contextAPI = {
    */
   getCustomerContext: (phoneNumber: string, token: string): Promise<CustomerContext> =>
     fetchAPI<CustomerContext>(`/api/context/customer/${encodeURIComponent(phoneNumber)}`, {}, token),
+};
+
+// ============================================
+// Calendar API
+// ============================================
+
+export interface CalendarAuthResponse {
+  authorization_url: string;
+}
+
+export interface CalendarStatusResponse {
+  connected: boolean;
+  provider: string;
+  email?: string;
+}
+
+export interface CalendarDisconnectResponse {
+  success: boolean;
+  message: string;
+}
+
+export const calendarAPI = {
+  /**
+   * Initiate Google Calendar OAuth flow
+   */
+  initiateGoogleAuth: (token: string): Promise<CalendarAuthResponse> =>
+    fetchAPI<CalendarAuthResponse>("/api/calendar/google/auth", {}, token),
+
+  /**
+   * Get Google Calendar connection status
+   */
+  getGoogleStatus: (token: string): Promise<CalendarStatusResponse> =>
+    fetchAPI<CalendarStatusResponse>("/api/calendar/google/status", {}, token),
+
+  /**
+   * Disconnect Google Calendar
+   */
+  disconnectGoogle: (token: string): Promise<CalendarDisconnectResponse> =>
+    fetchAPI<CalendarDisconnectResponse>(
+      "/api/calendar/google/disconnect",
+      { method: "POST" },
+      token
+    ),
 };

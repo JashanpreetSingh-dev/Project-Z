@@ -137,16 +137,10 @@ class ConversationService:
 
     def _tool_to_intent(self, tool_name: str) -> str:
         """Map tool name to intent for logging/analytics."""
-        mapping = {
-            "lookup_work_order": "CHECK_STATUS",
-            "get_work_order_status": "CHECK_STATUS",
-            "get_business_hours": "GET_HOURS",
-            "get_location": "GET_LOCATION",
-            "list_services": "GET_SERVICES",
-            "get_customer_vehicles": "CHECK_STATUS",
-            "transfer_to_human": "TRANSFER_HUMAN",
-        }
-        return mapping.get(tool_name, "UNKNOWN")
+        from app.modules.voice.intents import get_intent_for_tool
+
+        intent = get_intent_for_tool(tool_name)
+        return intent.value
 
     def get_conversation_id(self) -> str:
         """Get the conversation ID for continuity."""

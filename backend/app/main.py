@@ -14,6 +14,7 @@ from app.common.health import router as health_router
 from app.config import get_settings
 from app.database import close_db, init_db
 from app.modules.billing.router import router as billing_router
+from app.modules.calendar.router import router as calendar_router
 from app.modules.calls.router import router as calls_router
 from app.modules.context.router import router as context_router
 from app.modules.shops.router import router as shops_router
@@ -72,6 +73,7 @@ def create_app() -> FastAPI:
     app.include_router(billing_router, prefix="/api/billing", tags=["Billing"])
     app.include_router(context_router, prefix="/api/context", tags=["Customer Context"])
     app.include_router(sms_router, prefix="/api/sms", tags=["SMS"])
+    app.include_router(calendar_router, tags=["Calendar"])
 
     # Static files for voice test page
     static_dir = Path(__file__).parent.parent / "static"

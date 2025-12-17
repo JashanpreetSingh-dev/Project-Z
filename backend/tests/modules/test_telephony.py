@@ -19,6 +19,10 @@ class TestFunctionToIntentMapping:
         assert FUNCTION_TO_INTENT["get_location"] == CallIntent.GET_LOCATION
         assert FUNCTION_TO_INTENT["list_services"] == CallIntent.GET_SERVICES
         assert FUNCTION_TO_INTENT["transfer_to_human"] == CallIntent.TRANSFER_HUMAN
+        # Booking tools
+        assert FUNCTION_TO_INTENT["check_availability"] == CallIntent.SCHEDULE_APPOINTMENT
+        assert FUNCTION_TO_INTENT["propose_appointment"] == CallIntent.SCHEDULE_APPOINTMENT
+        assert FUNCTION_TO_INTENT["confirm_appointment"] == CallIntent.SCHEDULE_APPOINTMENT
 
     def test_unknown_function_returns_unknown(self):
         """Unknown functions should return UNKNOWN intent."""

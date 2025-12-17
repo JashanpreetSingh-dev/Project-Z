@@ -3,11 +3,12 @@
 // Force dynamic rendering to prevent static generation with Clerk hooks
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
 import { ArrowRight, Loader2, Zap } from "lucide-react";
 import { shopAPI, type ShopConfigCreate } from "@/lib/api";
+import { useShop } from "@/hooks/shops/use-shop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function OnboardingPage() {
   const router = useRouter();
   const { getToken, isLoaded, isSignedIn } = useAuth();
+  const { data: shop, isLoading: isShopLoading, status: shopStatus } = useShop();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,6 +25,25 @@ export default function OnboardingPage() {
     name: "",
     phone: "",
   });
+
+  // Redirect to dashboard if shop already exists
+  useEffect(() => {
+    // Only redirect if:
+    // 1. Auth is loaded
+    // 2. Shop query has completed (success or error status)
+    // 3. Shop exists
+    const queryFinished = isLoaded && (shopStatus === 'success' || shopStatus === 'error');
+    if (queryFinished && shop) {
+      router.push("/dashboard");
+    }
+  }, [shop, shopStatus, isLoaded, router]);
+
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push("/sign-in?redirect_url=/onboarding");
+    }
+  }, [isLoaded, isSignedIn, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +77,30 @@ export default function OnboardingPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking auth and shop
+  const isChecking = !isLoaded || isShopLoading || (isLoaded && isSignedIn && shopStatus !== 'success' && shopStatus !== 'error');
+
+  if (isChecking) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center bg-background p-4">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if shop exists (will redirect via useEffect)
+  if (shop) {
+    return null;
+  }
+
+  // Don't render if not signed in (will redirect via useEffect)
+  if (!isSignedIn) {
+    return null;
+  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background p-4">
