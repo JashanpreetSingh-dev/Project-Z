@@ -150,26 +150,3 @@ export function GradientBackground({
   );
 }
 
-// Simpler animated gradient for smaller sections
-interface AnimatedGradientProps {
-  className?: string;
-}
-
-export function AnimatedGradient({ className = "" }: AnimatedGradientProps) {
-  return (
-    <motion.div
-      className={`absolute inset-0 -z-10 ${className}`}
-      style={{
-        background: "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.15), transparent)",
-      }}
-      animate={{
-        opacity: [0.5, 0.8, 0.5],
-      }}
-      transition={{
-        duration: 8,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    />
-  );
-}

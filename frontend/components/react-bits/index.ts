@@ -1,5 +1,4 @@
 export { EnhancedTextReveal } from "./enhanced-text-reveal";
-export { TypewriterText } from "./typewriter-text";
 export { ScrollProgress } from "./scroll-progress";
 export { AnimatedCard } from "./animated-card";
 export { MeshGradient } from "./mesh-gradient";

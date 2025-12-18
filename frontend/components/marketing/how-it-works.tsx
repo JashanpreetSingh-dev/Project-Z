@@ -1,7 +1,7 @@
 "use client";
 
 import { Phone, Brain, MessageCircle } from "lucide-react";
-import { ScrollReveal, GradientText, AnimatedCard, EnhancedTextReveal, StaggerGrid } from "@/components/animations";
+import { ScrollReveal, AnimatedCard, EnhancedTextReveal, StaggerGrid } from "@/components/animations";
 
 const steps = [
   {
@@ -56,7 +56,7 @@ export function HowItWorksSection() {
                   </div>
 
                   <h3 className="text-lg font-semibold mb-2">
-                    {step.title} <GradientText>{step.titleHighlight}</GradientText>
+                    {step.title} <span className="gradient-text">{step.titleHighlight}</span>
                   </h3>
                   <p className="text-sm text-muted-foreground">{step.description}</p>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { OpenAILogo, TwilioLogo } from "@/components/icons";
-import { ScrollReveal, StaggerContainer, StaggerItem } from "@/components/animations";
+import { ScrollReveal, StaggerGrid } from "@/components/animations";
 
 const partners = [
   {
@@ -28,21 +28,19 @@ export function PoweredBySection() {
           </div>
         </ScrollReveal>
 
-        <StaggerContainer
+        <StaggerGrid
           className="flex flex-wrap items-center justify-center gap-12 md:gap-16"
           staggerDelay={0.15}
         >
           {partners.map((partner) => (
-            <StaggerItem key={partner.name}>
-              <div className="group flex flex-col items-center gap-2 transition-all">
-                <partner.Logo className="h-8 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
-                <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {partner.description}
-                </span>
-              </div>
-            </StaggerItem>
+            <div key={partner.name} className="group flex flex-col items-center gap-2 transition-all">
+              <partner.Logo className="h-8 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
+              <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {partner.description}
+              </span>
+            </div>
           ))}
-        </StaggerContainer>
+        </StaggerGrid>
       </div>
     </section>
   );

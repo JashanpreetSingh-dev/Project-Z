@@ -1,56 +1,20 @@
-export {
-  ScrollReveal,
-  StaggerContainer,
-  StaggerItem,
-  ScaleReveal,
-} from "./scroll-reveal";
+export { ScrollReveal } from "./scroll-reveal";
 
-export { AnimatedCounter, AnimatedTextCounter } from "./animated-counter";
+export { AnimatedCounter } from "./animated-counter";
 
-export {
-  TextReveal,
-  TextRevealByChar,
-  GradientText,
-  GradientTextReveal,
-} from "./text-reveal";
+export { GradientTextReveal } from "./text-reveal";
 
-export {
-  GradientBackground,
-  AnimatedGradient,
-} from "./gradient-background";
+export { GradientBackground } from "./gradient-background";
 
-export {
-  MagneticButton,
-  HoverScale,
-  GlowButtonWrapper,
-} from "./magnetic-button";
+export { MagneticButton } from "./magnetic-button";
 
-export {
-  FloatingElement,
-  RotatingFloat,
-  PulseElement,
-  FloatingShapes,
-} from "./floating-element";
+export { FloatingElement } from "./floating-element";
 
-export {
-  BlurReveal,
-  BlurStaggerContainer,
-  BlurStaggerItem,
-  FadeBlur,
-} from "./blur-reveal";
-
-export {
-  ParallaxSection,
-  ParallaxContainer,
-  ParallaxLayer,
-  ParallaxBackground,
-  HorizontalParallax,
-} from "./parallax";
+export { BlurReveal, FadeBlur } from "./blur-reveal";
 
 // React Bits enhanced components
 export {
   EnhancedTextReveal,
-  TypewriterText,
   ScrollProgress,
   AnimatedCard,
   MeshGradient,
