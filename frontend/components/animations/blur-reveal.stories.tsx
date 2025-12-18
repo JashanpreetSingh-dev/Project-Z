@@ -1,10 +1,5 @@
 import { Meta, StoryObj } from "@storybook/nextjs-vite";
-import {
-  BlurReveal,
-  BlurStaggerContainer,
-  BlurStaggerItem,
-  FadeBlur,
-} from "./blur-reveal";
+import { BlurReveal, FadeBlur } from "./blur-reveal";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 const meta = {
@@ -94,42 +89,7 @@ export const StrongBlur: Story = {
   ),
 };
 
-export const StaggerContainer: Story = {
-  render: () => (
-    <BlurStaggerContainer className="flex flex-col gap-4">
-      <BlurStaggerItem>
-        <Card className="w-[300px]">
-          <CardHeader>
-            <CardTitle>Card 1</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>First card with stagger</p>
-          </CardContent>
-        </Card>
-      </BlurStaggerItem>
-      <BlurStaggerItem>
-        <Card className="w-[300px]">
-          <CardHeader>
-            <CardTitle>Card 2</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Second card with stagger</p>
-          </CardContent>
-        </Card>
-      </BlurStaggerItem>
-      <BlurStaggerItem>
-        <Card className="w-[300px]">
-          <CardHeader>
-            <CardTitle>Card 3</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Third card with stagger</p>
-          </CardContent>
-        </Card>
-      </BlurStaggerItem>
-    </BlurStaggerContainer>
-  ),
-};
+// StaggerContainer story removed - BlurStaggerContainer and BlurStaggerItem are not exported
 
 export const FadeBlurExample: Story = {
   render: () => (

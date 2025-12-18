@@ -1,5 +1,5 @@
 import { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { AnimatedCounter, AnimatedTextCounter } from "./animated-counter";
+import { AnimatedCounter } from "./animated-counter";
 
 const meta = {
   title: "Animations/AnimatedCounter",
@@ -102,12 +102,6 @@ export const AllExamples: Story = {
           <AnimatedCounter value={42} prefix="$" suffix=".00" />
         </div>
         <p className="text-sm text-muted-foreground mt-2">Price format</p>
-      </div>
-      <div className="text-center">
-        <div className="text-2xl">
-          <AnimatedTextCounter text="Animated Text Counter" />
-        </div>
-        <p className="text-sm text-muted-foreground mt-2">Text counter</p>
       </div>
     </div>
   ),

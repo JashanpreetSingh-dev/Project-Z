@@ -1,5 +1,5 @@
 import { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { MagneticButton, HoverScale, GlowButtonWrapper } from "./magnetic-button";
+import { MagneticButton } from "./magnetic-button";
 import { Button } from "../ui/button";
 
 const meta = {
@@ -54,21 +54,7 @@ export const LargeRadius: Story = {
   ),
 };
 
-export const HoverScaleExample: Story = {
-  render: () => (
-    <HoverScale>
-      <Button>Hover to Scale</Button>
-    </HoverScale>
-  ),
-};
-
-export const GlowButtonExample: Story = {
-  render: () => (
-    <GlowButtonWrapper>
-      <Button className="gradient-bg text-white">Glow Button</Button>
-    </GlowButtonWrapper>
-  ),
-};
+// HoverScaleExample and GlowButtonExample stories removed - HoverScale and GlowButtonWrapper are not exported
 
 export const AllEffects: Story = {
   render: () => (
@@ -76,12 +62,6 @@ export const AllEffects: Story = {
       <MagneticButton>
         <Button>Magnetic Effect</Button>
       </MagneticButton>
-      <HoverScale>
-        <Button variant="outline">Hover Scale Effect</Button>
-      </HoverScale>
-      <GlowButtonWrapper>
-        <Button className="gradient-bg text-white">Glow Effect</Button>
-      </GlowButtonWrapper>
     </div>
   ),
 };

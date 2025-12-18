@@ -757,11 +757,15 @@ async def handle_call_status(request: Request) -> Response:
     # If call ended (completed, failed, busy, no-answer), remove from queue if present
     if call_status in ("completed", "failed", "busy", "no-answer", "canceled"):
         # Try to find and remove from queue
-        to_number = form.get("To", "")
-        shop_config = await get_shop_config_by_phone(str(to_number))
-        if shop_config and shop_config.id:
-            from app.modules.voice.call_queue import remove_from_queue
+        try:
+            to_number = form.get("To", "")
+            shop_config = await get_shop_config_by_phone(str(to_number))
+            if shop_config and shop_config.id:
+                from app.modules.voice.call_queue import remove_from_queue
 
-            remove_from_queue(str(shop_config.id), str(call_sid) if call_sid else "")
+                remove_from_queue(str(shop_config.id), str(call_sid) if call_sid else "")
+        except Exception as e:
+            # If queue cleanup fails, log but don't fail the webhook (fail open)
+            logger.warning("Failed to remove call %s from queue: %s", call_sid, e)
 
     return Response(content="OK", media_type="text/plain")
