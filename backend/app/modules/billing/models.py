@@ -85,6 +85,10 @@ class UsageRecord(Document):
 
     # Usage metrics
     call_count: int = Field(default=0, ge=0, description="Number of calls this period")
+    minutes_used: float = Field(default=0.0, ge=0.0, description="Total minutes used this period")
+    logged_call_sids: list[str] = Field(
+        default_factory=list, description="Call SIDs already counted to prevent double-logging"
+    )
     last_call_at: datetime | None = Field(default=None, description="Timestamp of last call")
 
     # Timestamps
@@ -99,4 +103,4 @@ class UsageRecord(Document):
         ]
 
     def __str__(self) -> str:
-        return f"UsageRecord({self.shop_id}, calls={self.call_count})"
+        return f"UsageRecord({self.shop_id}, calls={self.call_count}, minutes={self.minutes_used:.2f})"

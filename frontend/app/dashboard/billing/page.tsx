@@ -25,7 +25,7 @@ const PLANS: {
   tier: PlanTier;
   name: string;
   price: number;
-  calls: number | null;
+  minutes: number | null;
   features: string[];
   highlighted?: boolean;
 }[] = [
@@ -33,9 +33,9 @@ const PLANS: {
     tier: "free",
     name: "Free",
     price: 0,
-    calls: 10,
+    minutes: 60,
     features: [
-      "10 calls/month",
+      "60 minutes/month",
       "AI phone receptionist",
       "Basic call summaries",
     ],
@@ -44,9 +44,9 @@ const PLANS: {
     tier: "starter",
     name: "Starter",
     price: 49,
-    calls: 100,
+    minutes: 500,
     features: [
-      "100 calls/month",
+      "500 minutes/month",
       "AI phone receptionist",
       "Repair status lookups",
       "Business hours & location",
@@ -57,10 +57,10 @@ const PLANS: {
     tier: "professional",
     name: "Professional",
     price: 99,
-    calls: 500,
+    minutes: 2500,
     highlighted: true,
     features: [
-      "500 calls/month",
+      "2,500 minutes/month",
       "Everything in Starter",
       "Smart call transfers",
       "Custom greetings",
@@ -72,9 +72,9 @@ const PLANS: {
     tier: "enterprise",
     name: "Enterprise",
     price: 0,
-    calls: null,
+    minutes: null,
     features: [
-      "Unlimited calls",
+      "Unlimited minutes",
       "Everything in Professional",
       "Shop integrations",
       "Dedicated manager",
@@ -219,15 +219,15 @@ export default function BillingPage() {
           <CardContent>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl font-bold">
-                {subscription.usage.call_count}
+                {Math.round(subscription.usage.minutes_used)}
               </span>
               <span className="text-muted-foreground">
-                / {subscription.usage.call_limit ?? "∞"} calls
+                / {subscription.usage.minute_limit ?? "∞"} minutes
               </span>
             </div>
 
             {/* Progress bar */}
-            {subscription.usage.call_limit && (
+            {subscription.usage.minute_limit && (
               <div className="mt-4">
                 <div className="h-2 w-full rounded-full bg-muted">
                   <div
@@ -265,9 +265,9 @@ export default function BillingPage() {
           <CardContent className="flex items-center gap-4 py-4">
             <AlertCircle className="h-6 w-6 text-destructive shrink-0" />
             <div className="flex-1">
-              <p className="font-medium text-destructive">Call limit reached</p>
+              <p className="font-medium text-destructive">Minute limit reached</p>
               <p className="text-sm text-muted-foreground">
-                New calls will be blocked until you upgrade or your period resets.
+                New calls will be transferred directly until you upgrade or your period resets.
               </p>
             </div>
             <Button

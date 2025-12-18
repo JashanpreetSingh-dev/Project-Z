@@ -195,7 +195,9 @@ export type SubscriptionStatus = "active" | "canceled" | "past_due" | "trialing"
 
 export interface UsageInfo {
   call_count: number;
-  call_limit: number | null;
+  call_limit: number | null; // Deprecated, use minute_limit
+  minutes_used: number;
+  minute_limit: number | null;
   period_start: string;
   period_end: string;
   percentage_used: number;
@@ -214,7 +216,8 @@ export interface SubscriptionInfo {
 
 export interface QuotaStatus {
   allowed: boolean;
-  calls_remaining: number | null;
+  calls_remaining: number | null; // Deprecated, use minutes_remaining
+  minutes_remaining: number | null;
   plan_tier: PlanTier;
   upgrade_required: boolean;
 }

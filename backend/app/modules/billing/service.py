@@ -1,6 +1,7 @@
 """Billing service for subscription management and Stripe integration."""
 
 import logging
+import math
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -10,7 +11,7 @@ from app.common.utils import utc_now
 from app.config import get_settings
 from app.modules.billing.constants import (
     CONCURRENT_CALL_LIMITS,
-    PLAN_LIMITS,
+    PLAN_MINUTE_LIMITS,
     PLAN_NAMES,
     PLAN_PRICES,
 )
@@ -127,11 +128,11 @@ async def get_subscription_response(shop_id: str) -> SubscriptionResponse:
     subscription = await get_or_create_subscription(shop_id)
     usage = await get_current_usage(shop_id)
 
-    limit = PLAN_LIMITS[subscription.plan_tier]
-    call_limit = None if limit == float("inf") else int(limit)
+    limit = PLAN_MINUTE_LIMITS[subscription.plan_tier]
+    minute_limit = None if limit == float("inf") else int(limit)
 
-    if call_limit:
-        percentage = min((usage.call_count / call_limit) * 100, 100)
+    if minute_limit:
+        percentage = min((usage.minutes_used / minute_limit) * 100, 100)
     else:
         percentage = 0
 
@@ -142,7 +143,9 @@ async def get_subscription_response(shop_id: str) -> SubscriptionResponse:
         price_monthly=PLAN_PRICES[subscription.plan_tier],
         usage=UsageResponse(
             call_count=usage.call_count,
-            call_limit=call_limit,
+            call_limit=None,  # Deprecated - using minute_limit instead
+            minute_limit=minute_limit,
+            minutes_used=usage.minutes_used,
             period_start=usage.period_start,
             period_end=usage.period_end,
             percentage_used=percentage,
@@ -191,28 +194,72 @@ async def get_current_usage(shop_id: str) -> UsageRecord:
             period_start=subscription.current_period_start,
             period_end=subscription.current_period_end,
             call_count=0,
+            minutes_used=0.0,
+            logged_call_sids=[],
         )
         await usage.insert()
         logger.info("Created usage record for shop %s", shop_id)
+    else:
+        # Ensure new fields exist for backward compatibility
+        # (if record was created before migration)
+        _MISSING = object()
+        needs_save = False
+        if getattr(usage, "minutes_used", _MISSING) is _MISSING:
+            usage.minutes_used = 0.0
+            needs_save = True
+        if getattr(usage, "logged_call_sids", _MISSING) is _MISSING:
+            usage.logged_call_sids = []
+            needs_save = True
+        if needs_save:
+            await usage.save()
+            logger.debug("Initialized new fields in usage record for shop %s", shop_id)
 
     return usage
 
 
-async def increment_usage(shop_id: str) -> UsageRecord:
-    """Increment call count for current period.
+async def increment_usage(
+    shop_id: str, duration_seconds: int, call_sid: str
+) -> UsageRecord:
+    """Increment usage (minutes and call count) for current period.
+
+    This function is idempotent - if the same call_sid is already logged,
+    it will not increment again to prevent double-logging.
 
     Args:
         shop_id: The shop's ID.
+        duration_seconds: Duration of the call in seconds.
+        call_sid: Unique call identifier to prevent duplicate logging.
 
     Returns:
         Updated usage record.
     """
     usage = await get_current_usage(shop_id)
+
+    # Check if this call_sid has already been counted (idempotency)
+    if call_sid in usage.logged_call_sids:
+        logger.debug(
+            "Call %s already logged for shop %s, skipping increment", call_sid, shop_id
+        )
+        return usage
+
+    # Calculate minutes (round up to nearest minute, telephony standard)
+    minutes = math.ceil(duration_seconds / 60.0) if duration_seconds > 0 else 1
+
+    # Increment usage
     usage.call_count += 1
+    usage.minutes_used += minutes
+    usage.logged_call_sids.append(call_sid)
     usage.last_call_at = utc_now()
     usage.updated_at = utc_now()
     await usage.save()
-    logger.debug("Usage incremented for shop %s: %d calls", shop_id, usage.call_count)
+
+    logger.debug(
+        "Usage incremented for shop %s: %d calls, %.2f minutes (call_sid=%s)",
+        shop_id,
+        usage.call_count,
+        usage.minutes_used,
+        call_sid,
+    )
     return usage
 
 
@@ -268,20 +315,21 @@ async def check_concurrent_limit(shop_id: str) -> tuple[bool, int | None, int, i
 
 
 async def check_quota(shop_id: str) -> QuotaStatus:
-    """Check if shop has remaining quota for calls.
+    """Check if shop has remaining quota (minutes) for calls.
 
     Args:
         shop_id: The shop's ID.
 
     Returns:
-        Quota status indicating if calls are allowed.
+        Quota status indicating if calls are allowed. When limit is exceeded,
+        returns allowed=False but caller should transfer (not hard block).
     """
     from app.modules.voice.call_queue import get_queue_size
 
     subscription = await get_or_create_subscription(shop_id)
     usage = await get_current_usage(shop_id)
 
-    limit = PLAN_LIMITS[subscription.plan_tier]
+    minute_limit = PLAN_MINUTE_LIMITS[subscription.plan_tier]
 
     # Check concurrent limits
     (
@@ -294,11 +342,12 @@ async def check_quota(shop_id: str) -> QuotaStatus:
     queue_size = get_queue_size(shop_id)
 
     # Unlimited plan
-    if limit == float("inf"):
+    if minute_limit == float("inf"):
         # For unlimited plans, check concurrent limits only
         return QuotaStatus(
             allowed=concurrent_allowed,
             calls_remaining=None,
+            minutes_remaining=None,
             plan_tier=subscription.plan_tier,
             upgrade_required=False,
             concurrent_limit=concurrent_limit,
@@ -307,12 +356,13 @@ async def check_quota(shop_id: str) -> QuotaStatus:
             queue_size=queue_size,
         )
 
-    calls_remaining = int(limit) - usage.call_count
-    allowed = calls_remaining > 0 and concurrent_allowed
+    minutes_remaining = int(minute_limit) - usage.minutes_used
+    allowed = minutes_remaining > 0 and concurrent_allowed
 
     return QuotaStatus(
         allowed=allowed,
-        calls_remaining=max(0, calls_remaining),
+        calls_remaining=None,  # Deprecated - using minutes_remaining instead
+        minutes_remaining=max(0, minutes_remaining),
         plan_tier=subscription.plan_tier,
         upgrade_required=not allowed,
         concurrent_limit=concurrent_limit,

@@ -6,6 +6,7 @@ from typing import Any
 
 from beanie import Document, Indexed
 from pydantic import Field
+from pymongo import IndexModel
 
 from app.common.utils import utc_now
 
@@ -79,6 +80,9 @@ class CallLog(Document):
     class Settings:
         name = "call_logs"
         use_state_management = True
+        indexes = [
+            IndexModel([("call_sid", 1)], unique=True, sparse=True),  # Prevent duplicate call logs
+        ]
 
     def __str__(self) -> str:
         return f"CallLog({self.intent}, {self.outcome})"

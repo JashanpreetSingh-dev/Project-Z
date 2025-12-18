@@ -2,13 +2,16 @@
 
 from app.modules.billing.models import PlanTier
 
-# Call limits per billing period (monthly)
-PLAN_LIMITS: dict[PlanTier, int | float] = {
-    PlanTier.FREE: 10,
-    PlanTier.STARTER: 100,
-    PlanTier.PROFESSIONAL: 500,
+# Minute limits per billing period (monthly)
+PLAN_MINUTE_LIMITS: dict[PlanTier, int | float] = {
+    PlanTier.FREE: 60,
+    PlanTier.STARTER: 500,
+    PlanTier.PROFESSIONAL: 2500,
     PlanTier.ENTERPRISE: float("inf"),
 }
+
+# Keep PLAN_LIMITS as alias for backward compatibility during transition
+PLAN_LIMITS = PLAN_MINUTE_LIMITS
 
 # Plan display names
 PLAN_NAMES: dict[PlanTier, str] = {

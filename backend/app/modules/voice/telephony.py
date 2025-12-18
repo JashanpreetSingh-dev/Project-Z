@@ -98,6 +98,7 @@ class TwilioRealtimeSession(RealtimeSession):
         self._detected_intent: CallIntent = CallIntent.UNKNOWN
         self._transcripts: list[dict[str, str]] = []
         self._sms_sent = False  # Track if SMS has been sent to prevent duplicates
+        self._call_logged = False  # Track if call has been logged to prevent duplicates
 
     @property
     def shop_id(self) -> str | None:
@@ -308,7 +309,21 @@ class TwilioRealtimeSession(RealtimeSession):
     # -------------------------------------------------------------------------
 
     async def _log_call(self, duration: int) -> None:
-        """Save call record to database and increment usage."""
+        """Save call record to database and increment usage.
+
+        This method is idempotent - it will not log the same call twice.
+        Uses both application-level flag and database unique index for protection.
+        """
+        # Check if already logged (application-level guard)
+        if self._call_logged:
+            logger.debug("Call %s already logged, skipping", self.call_sid)
+            return
+
+        # Ensure we have a valid call_sid
+        if not self.call_sid:
+            logger.warning("Cannot log call without call_sid")
+            return
+
         # Determine outcome
         if self._should_transfer:
             outcome = CallOutcome.TRANSFERRED
@@ -319,13 +334,28 @@ class TwilioRealtimeSession(RealtimeSession):
         else:
             outcome = CallOutcome.ABANDONED
 
-        # Increment usage counter for billing
+        # Check if call_sid already exists in database (database-level guard)
+        existing_log = await CallLog.find_one(CallLog.call_sid == self.call_sid)
+        if existing_log:
+            logger.debug("Call %s already exists in database, skipping", self.call_sid)
+            self._call_logged = True
+            return
+
+        # Use at least 1 minute for billing if duration is 0 or missing
+        billing_duration = max(duration, 60) if duration > 0 else 60
+
+        # Increment usage counter for billing (idempotent - checks call_sid internally)
         if self.shop_id:
             try:
-                await increment_usage(self.shop_id)
-                logger.debug("Usage incremented for shop %s", self.shop_id)
+                await increment_usage(self.shop_id, billing_duration, self.call_sid)
+                logger.debug("Usage incremented for shop %s, call %s", self.shop_id, self.call_sid)
             except Exception as e:
-                logger.error("Failed to increment usage for shop %s: %s", self.shop_id, e)
+                logger.error(
+                    "Failed to increment usage for shop %s, call %s: %s",
+                    self.shop_id,
+                    self.call_sid,
+                    e,
+                )
 
         try:
             call_log = CallLog(
@@ -352,6 +382,7 @@ class TwilioRealtimeSession(RealtimeSession):
                 },
             )
             await call_log.insert()
+            self._call_logged = True  # Mark as logged after successful insert
             logger.info("Call logged: %s", self.call_sid)
 
             # Update customer context (async, non-blocking)
@@ -397,7 +428,12 @@ class TwilioRealtimeSession(RealtimeSession):
                     logger.exception("Failed to send SMS summary: %s", e)
 
         except Exception as e:
-            logger.exception("Failed to log call %s: %s", self.call_sid, e)
+            # Handle duplicate key error gracefully (from unique index)
+            if "duplicate key" in str(e).lower() or "E11000" in str(e):
+                logger.debug("Call %s already exists (duplicate key), skipping", self.call_sid)
+                self._call_logged = True
+            else:
+                logger.exception("Failed to log call %s: %s", self.call_sid, e)
 
 
 # =============================================================================
@@ -405,18 +441,15 @@ class TwilioRealtimeSession(RealtimeSession):
 # =============================================================================
 
 
-def _quota_exceeded_response(shop_name: str) -> Response:
-    """Generate TwiML response when quota is exceeded."""
-    from twilio.twiml.voice_response import VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+def _quota_exceeded_transfer_response(transfer_number: str) -> Response:
+    """Generate TwiML response to transfer call when quota is exceeded."""
+    from twilio.twiml.voice_response import Dial, VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
 
     response = VoiceResponse()
-    response.say(
-        f"Thank you for calling {shop_name}. "
-        "We're experiencing high call volume and cannot take your call right now. "
-        "Please try again later or visit our website for more information. Goodbye.",
-        voice="Polly.Joanna",
-    )
-    response.hangup()
+    response.say("Transferring you now.", voice="Polly.Joanna")
+    dial = Dial()
+    dial.number(transfer_number)
+    response.append(dial)
     return Response(content=str(response), media_type="application/xml")
 
 
@@ -488,16 +521,40 @@ async def handle_incoming_call(request: Request) -> Response:
             quota = await check_quota(shop_id)
             if (
                 not quota.allowed
-                and quota.calls_remaining is not None
-                and quota.calls_remaining <= 0
+                and quota.minutes_remaining is not None
+                and quota.minutes_remaining <= 0
             ):
-                logger.warning(
-                    "Monthly quota exceeded for shop %s (%s), rejecting call %s",
-                    shop_name,
-                    shop_id,
-                    call_sid,
-                )
-                return _quota_exceeded_response(shop_name)
+                # Quota exceeded - transfer directly instead of rejecting
+                transfer_number = (
+                    shop_config.settings.transfer_number if shop_config else None
+                ) or _settings.default_transfer_number
+
+                if transfer_number:
+                    logger.warning(
+                        "Monthly quota exceeded for shop %s (%s), transferring call %s to %s",
+                        shop_name,
+                        shop_id,
+                        call_sid,
+                        transfer_number,
+                    )
+                    return _quota_exceeded_transfer_response(transfer_number)
+                else:
+                    logger.error(
+                        "Quota exceeded for shop %s but no transfer number configured, rejecting call %s",
+                        shop_id,
+                        call_sid,
+                    )
+                    # Fallback to old behavior if no transfer number
+                    from twilio.twiml.voice_response import VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+                    response = VoiceResponse()
+                    response.say(
+                        f"Thank you for calling {shop_name}. "
+                        "We're experiencing high call volume. Please try again later. Goodbye.",
+                        voice="Polly.Joanna",
+                    )
+                    response.hangup()
+                    return Response(content=str(response), media_type="application/xml")
         except Exception as e:
             # If quota check fails, allow the call (fail open for better UX)
             logger.error("Quota check failed for shop %s: %s", shop_id, e)

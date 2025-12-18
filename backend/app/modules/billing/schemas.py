@@ -10,8 +10,12 @@ from app.modules.billing.models import PlanTier, SubscriptionStatus
 class UsageResponse(BaseModel):
     """Current usage information."""
 
-    call_count: int = Field(..., description="Calls used this period")
-    call_limit: int | None = Field(..., description="Call limit (None for unlimited)")
+    call_count: int = Field(..., description="Calls used this period (for analytics)")
+    call_limit: int | None = Field(
+        default=None, description="Call limit (deprecated, use minute_limit)"
+    )
+    minutes_used: float = Field(..., ge=0.0, description="Minutes used this period")
+    minute_limit: int | None = Field(..., description="Minute limit (None for unlimited)")
     period_start: datetime
     period_end: datetime
     percentage_used: float = Field(..., ge=0, le=100)
@@ -60,9 +64,17 @@ class QuotaStatus(BaseModel):
     """Quick quota check for call handling."""
 
     allowed: bool = Field(..., description="Whether calls are allowed")
-    calls_remaining: int | None = Field(..., description="Calls remaining (None for unlimited)")
+    calls_remaining: int | None = Field(
+        default=None, description="Calls remaining (deprecated, use minutes_remaining)"
+    )
+    minutes_remaining: int | None = Field(
+        ..., description="Minutes remaining (None for unlimited)"
+    )
     plan_tier: PlanTier
-    upgrade_required: bool = Field(default=False)
+    upgrade_required: bool = Field(
+        default=False,
+        description="If True, limit exceeded - should transfer directly instead of AI handling",
+    )
     concurrent_limit: int | None = Field(
         default=None, description="Max concurrent calls (None for unlimited)"
     )
