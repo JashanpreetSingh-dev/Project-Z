@@ -63,3 +63,11 @@ class QuotaStatus(BaseModel):
     calls_remaining: int | None = Field(..., description="Calls remaining (None for unlimited)")
     plan_tier: PlanTier
     upgrade_required: bool = Field(default=False)
+    concurrent_limit: int | None = Field(
+        default=None, description="Max concurrent calls (None for unlimited)"
+    )
+    concurrent_count: int = Field(default=0, description="Current number of concurrent calls")
+    concurrent_available: int | None = Field(
+        default=None, description="Available concurrent slots (None for unlimited)"
+    )
+    queue_size: int = Field(default=0, description="Number of calls waiting in queue")

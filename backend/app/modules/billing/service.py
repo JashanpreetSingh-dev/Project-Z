@@ -8,7 +8,12 @@ import stripe
 
 from app.common.utils import utc_now
 from app.config import get_settings
-from app.modules.billing.constants import PLAN_LIMITS, PLAN_NAMES, PLAN_PRICES
+from app.modules.billing.constants import (
+    CONCURRENT_CALL_LIMITS,
+    PLAN_LIMITS,
+    PLAN_NAMES,
+    PLAN_PRICES,
+)
 from app.modules.billing.models import (
     PlanTier,
     Subscription,
@@ -212,6 +217,52 @@ async def increment_usage(shop_id: str) -> UsageRecord:
 
 
 # =============================================================================
+# Concurrent Call Limits
+# =============================================================================
+
+
+def get_concurrent_limit(shop_id: str, plan_tier: PlanTier) -> int | None:
+    """Get the concurrent call limit for a shop's plan tier.
+
+    Args:
+        shop_id: The shop's ID.
+        plan_tier: The plan tier.
+
+    Returns:
+        Concurrent call limit, or None for unlimited.
+    """
+    return CONCURRENT_CALL_LIMITS.get(plan_tier)
+
+
+async def check_concurrent_limit(shop_id: str) -> tuple[bool, int | None, int, int]:
+    """Check if shop has available concurrent call slots.
+
+    Args:
+        shop_id: The shop's ID.
+
+    Returns:
+        Tuple of (allowed, available_slots, current_count, limit).
+        available_slots is None for unlimited plans.
+    """
+    from app.modules.voice.concurrent_manager import (
+        get_available_slots,
+        get_concurrent_count,
+    )
+
+    subscription = await get_or_create_subscription(shop_id)
+    limit = get_concurrent_limit(shop_id, subscription.plan_tier)
+
+    if limit is None:  # Unlimited
+        return (True, None, 0, 0)
+
+    current_count = get_concurrent_count(shop_id)
+    available = get_available_slots(shop_id, limit)
+    allowed = available is not None and available > 0
+
+    return (allowed, available, current_count, limit)
+
+
+# =============================================================================
 # Quota Checking
 # =============================================================================
 
@@ -225,28 +276,49 @@ async def check_quota(shop_id: str) -> QuotaStatus:
     Returns:
         Quota status indicating if calls are allowed.
     """
+    from app.modules.voice.call_queue import get_queue_size
+
     subscription = await get_or_create_subscription(shop_id)
     usage = await get_current_usage(shop_id)
 
     limit = PLAN_LIMITS[subscription.plan_tier]
 
+    # Check concurrent limits
+    (
+        concurrent_allowed,
+        concurrent_available,
+        concurrent_count,
+        concurrent_limit,
+    ) = await check_concurrent_limit(shop_id)
+
+    queue_size = get_queue_size(shop_id)
+
     # Unlimited plan
     if limit == float("inf"):
+        # For unlimited plans, check concurrent limits only
         return QuotaStatus(
-            allowed=True,
+            allowed=concurrent_allowed,
             calls_remaining=None,
             plan_tier=subscription.plan_tier,
             upgrade_required=False,
+            concurrent_limit=concurrent_limit,
+            concurrent_count=concurrent_count,
+            concurrent_available=concurrent_available,
+            queue_size=queue_size,
         )
 
     calls_remaining = int(limit) - usage.call_count
-    allowed = calls_remaining > 0
+    allowed = calls_remaining > 0 and concurrent_allowed
 
     return QuotaStatus(
         allowed=allowed,
         calls_remaining=max(0, calls_remaining),
         plan_tier=subscription.plan_tier,
         upgrade_required=not allowed,
+        concurrent_limit=concurrent_limit,
+        concurrent_count=concurrent_count,
+        concurrent_available=concurrent_available,
+        queue_size=queue_size,
     )
 
 

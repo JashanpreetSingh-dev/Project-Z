@@ -14,12 +14,14 @@ from typing import Any
 from fastapi import APIRouter, Request, Response, WebSocket, WebSocketDisconnect
 
 from app.config import get_settings
-from app.modules.billing.service import check_quota, increment_usage
+from app.modules.billing.service import check_quota, get_concurrent_limit, increment_usage
 from app.modules.calls.models import CallIntent, CallLog, CallOutcome
 from app.modules.context.service import update_context_from_call, update_context_from_sms
 from app.modules.shops.models import ShopConfig
 from app.modules.shops.service import get_shop_config_by_id, get_shop_config_by_phone
 from app.modules.sms.service import SmsService
+from app.modules.voice.call_queue import enqueue_call
+from app.modules.voice.concurrent_manager import acquire_call_slot
 from app.modules.voice.intents import TOOL_TO_INTENT_MAPPING
 from app.modules.voice.prompts import get_system_prompt
 from app.modules.voice.realtime import RealtimeEventType
@@ -418,6 +420,40 @@ def _quota_exceeded_response(shop_name: str) -> Response:
     return Response(content=str(response), media_type="application/xml")
 
 
+def _queue_hold_response(shop_name: str, queue_position: int, base_url: str) -> Response:
+    """Generate TwiML response to put caller on hold in queue."""
+    from twilio.twiml.voice_response import VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+    response = VoiceResponse()
+
+    # Announce queue position
+    if queue_position == 1:
+        response.say(
+            f"Thank you for calling {shop_name}. "
+            "All our representatives are currently busy. "
+            "You are next in line. Please hold.",
+            voice="Polly.Joanna",
+        )
+    else:
+        response.say(
+            f"Thank you for calling {shop_name}. "
+            f"All our representatives are currently busy. "
+            f"You are caller number {queue_position} in line. Please hold.",
+            voice="Polly.Joanna",
+        )
+
+    # Play hold music and redirect to queue handler
+    # Twilio will call the queue-handler endpoint repeatedly
+    queue_url = f"{base_url}/api/twilio/queue-handler"
+    response.play(
+        "http://com.twilio.music.classical.s3.amazonaws.com/Mellotroniac_-_Flight_of_Fancy.mp3",
+        loop=10,
+    )
+    response.redirect(queue_url, method="POST")
+
+    return Response(content=str(response), media_type="application/xml")
+
+
 @router.post("/incoming")
 async def handle_incoming_call(request: Request) -> Response:
     """Handle incoming Twilio call webhook.
@@ -434,6 +470,12 @@ async def handle_incoming_call(request: Request) -> Response:
 
     logger.info("Incoming call: sid=%s from=%s to=%s", call_sid, from_number, to_number)
 
+    # Build base URL for webhooks
+    base_url = _settings.twilio_webhook_base_url
+    if not base_url:
+        host = request.headers.get("host", "localhost:8000")
+        base_url = f"https://{host}"
+
     # Look up shop by phone number to check quota
     shop_config = await get_shop_config_by_phone(str(to_number))
 
@@ -441,12 +483,16 @@ async def handle_incoming_call(request: Request) -> Response:
         shop_id = str(shop_config.id)
         shop_name = shop_config.name
 
-        # Check quota before accepting call
+        # Check quota (monthly limit) before accepting call
         try:
             quota = await check_quota(shop_id)
-            if not quota.allowed:
+            if (
+                not quota.allowed
+                and quota.calls_remaining is not None
+                and quota.calls_remaining <= 0
+            ):
                 logger.warning(
-                    "Quota exceeded for shop %s (%s), rejecting call %s",
+                    "Monthly quota exceeded for shop %s (%s), rejecting call %s",
                     shop_name,
                     shop_id,
                     call_sid,
@@ -455,14 +501,40 @@ async def handle_incoming_call(request: Request) -> Response:
         except Exception as e:
             # If quota check fails, allow the call (fail open for better UX)
             logger.error("Quota check failed for shop %s: %s", shop_id, e)
+
+        # Check concurrent call limit
+        try:
+            from app.modules.billing.service import get_or_create_subscription
+
+            subscription = await get_or_create_subscription(shop_id)
+            concurrent_limit = get_concurrent_limit(shop_id, subscription.plan_tier)
+
+            # Try to acquire a concurrent call slot
+            slot_acquired = await acquire_call_slot(shop_id, concurrent_limit or 999)
+            if not slot_acquired:
+                # At concurrent limit - enqueue the call
+                logger.info(
+                    "Concurrent limit reached for shop %s, enqueuing call %s",
+                    shop_id,
+                    call_sid,
+                )
+                queue_position = await enqueue_call(
+                    shop_id=shop_id,
+                    call_sid=str(call_sid),
+                    from_number=str(from_number),
+                    to_number=str(to_number),
+                )
+
+                # Return TwiML to put caller on hold
+                return _queue_hold_response(shop_name, queue_position, base_url)
+        except Exception as e:
+            # If concurrent check fails, allow the call (fail open for better UX)
+            logger.error("Concurrent limit check failed for shop %s: %s", shop_id, e)
     else:
         shop_name = "our business"
+        shop_id = None
 
     # Build WebSocket URL
-    base_url = _settings.twilio_webhook_base_url
-    if not base_url:
-        host = request.headers.get("host", "localhost:8000")
-        base_url = f"https://{host}"
 
     # Convert https:// to wss:// for WebSocket
     ws_base = base_url.replace("https://", "wss://").replace("http://", "ws://")
@@ -493,6 +565,8 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
     logger.info("Twilio media stream connected")
 
     session: TwilioRealtimeSession | None = None
+    shop_id: str | None = None
+    call_sid: str | None = None
 
     try:
         while True:
@@ -502,17 +576,32 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
             if message.get("event") == "start" and session is None:
                 params = message.get("start", {}).get("customParameters", {})
                 to_number = params.get("toNumber", "unknown")
+                call_sid = params.get("callSid", "unknown") or "unknown"
 
                 # Look up shop by Twilio phone number
                 shop_config = await get_shop_config_by_phone(to_number)
                 if shop_config:
                     logger.info("Matched shop: %s", shop_config.name)
+                    shop_id = str(shop_config.id) if shop_config.id else None
                 else:
                     logger.warning("No shop found for %s, using defaults", to_number)
 
+                # Note: Slot should already be acquired at webhook level
+                # If this call came from queue, slot was acquired when dequeued
+                # We don't acquire here to avoid double-acquisition
+                # Just log for monitoring
+                if shop_id:
+                    from app.modules.voice.concurrent_manager import get_concurrent_count
+
+                    logger.debug(
+                        "WebSocket connecting for shop %s, current concurrent: %d",
+                        shop_id,
+                        get_concurrent_count(shop_id),
+                    )
+
                 session = TwilioRealtimeSession(
                     twilio_ws=websocket,
-                    call_sid=params.get("callSid", "unknown"),
+                    call_sid=str(call_sid) if call_sid else "unknown",
                     from_number=params.get("fromNumber", "unknown"),
                     to_number=to_number,
                     shop_config=shop_config,
@@ -535,10 +624,144 @@ async def twilio_media_stream(websocket: WebSocket) -> None:
         if session:
             await session.stop()
 
+        # Release semaphore slot when call ends
+        if shop_id:
+            from app.modules.voice.concurrent_manager import release_call_slot
+
+            release_call_slot(shop_id)
+            logger.debug("Released concurrent call slot for shop %s (call %s)", shop_id, call_sid)
+
+
+@router.post("/queue-handler")
+async def handle_queue_handler(request: Request) -> Response:
+    """Handle queue polling - check if slot available and redirect to media stream.
+
+    Called by Twilio repeatedly while caller is on hold.
+    """
+    from twilio.twiml.voice_response import Connect, Stream, VoiceResponse  # type: ignore[import-untyped]  # noqa: I001
+
+    form = await request.form()
+    call_sid = form.get("CallSid", "unknown")
+    from_number = form.get("From", "unknown")
+    to_number = form.get("To", "unknown")
+
+    logger.debug("Queue handler called for call %s", call_sid)
+
+    # Look up shop
+    shop_config = await get_shop_config_by_phone(str(to_number))
+    if not shop_config or not shop_config.id:
+        # No shop found, reject
+        response = VoiceResponse()
+        response.say(
+            "Sorry, we couldn't process your call. Please try again later.", voice="Polly.Joanna"
+        )
+        response.hangup()
+        return Response(content=str(response), media_type="application/xml")
+
+    shop_id = str(shop_config.id)
+
+    # Check if this call is in queue
+    from app.modules.voice.call_queue import get_queued_call
+
+    queued_call = get_queued_call(shop_id, str(call_sid))
+    if not queued_call:
+        # Not in queue, proceed normally
+        logger.warning("Call %s not found in queue, redirecting to media stream", call_sid)
+        base_url = _settings.twilio_webhook_base_url
+        if not base_url:
+            host = request.headers.get("host", "localhost:8000")
+            base_url = f"https://{host}"
+        ws_base = base_url.replace("https://", "wss://").replace("http://", "ws://")
+        ws_url = f"{ws_base}/api/twilio/media-stream"
+
+        response = VoiceResponse()
+        connect = Connect()
+        stream = Stream(url=ws_url)
+        stream.parameter(name="callSid", value=str(call_sid))
+        stream.parameter(name="fromNumber", value=str(from_number))
+        stream.parameter(name="toNumber", value=str(to_number))
+        connect.append(stream)
+        response.append(connect)
+        return Response(content=str(response), media_type="application/xml")
+
+    # Check if slot is available
+    from app.modules.billing.service import get_concurrent_limit, get_or_create_subscription
+    from app.modules.voice.concurrent_manager import acquire_call_slot
+
+    subscription = await get_or_create_subscription(shop_id)
+    concurrent_limit = get_concurrent_limit(shop_id, subscription.plan_tier)
+
+    # Try to acquire slot
+    slot_acquired = await acquire_call_slot(shop_id, concurrent_limit or 999)
+    if slot_acquired:
+        # Slot available! Remove from queue and redirect to media stream
+        from app.modules.voice.call_queue import remove_from_queue
+
+        remove_from_queue(shop_id, str(call_sid))
+
+        base_url = _settings.twilio_webhook_base_url
+        if not base_url:
+            host = request.headers.get("host", "localhost:8000")
+            base_url = f"https://{host}"
+        ws_base = base_url.replace("https://", "wss://").replace("http://", "ws://")
+        ws_url = f"{ws_base}/api/twilio/media-stream"
+
+        logger.info("Slot available for queued call %s, redirecting to media stream", call_sid)
+
+        response = VoiceResponse()
+        response.say("A representative is now available. Connecting you now.", voice="Polly.Joanna")
+        connect = Connect()
+        stream = Stream(url=ws_url)
+        stream.parameter(name="callSid", value=str(call_sid))
+        stream.parameter(name="fromNumber", value=str(from_number))
+        stream.parameter(name="toNumber", value=str(to_number))
+        connect.append(stream)
+        response.append(connect)
+        return Response(content=str(response), media_type="application/xml")
+
+    # Still no slot available, continue holding
+    # Check timeout (5 minutes max)
+    wait_time = time.time() - queued_call.queued_at
+    if wait_time > 300:  # 5 minutes
+        logger.warning("Call %s exceeded queue timeout, disconnecting", call_sid)
+        from app.modules.voice.call_queue import remove_from_queue
+
+        remove_from_queue(shop_id, str(call_sid))
+        response = VoiceResponse()
+        response.say(
+            "We're sorry, but we couldn't connect you at this time. Please try again later.",
+            voice="Polly.Joanna",
+        )
+        response.hangup()
+        return Response(content=str(response), media_type="application/xml")
+
+    # Continue holding - redirect back to self to poll again
+    response = VoiceResponse()
+    base_url = _settings.twilio_webhook_base_url
+    if not base_url:
+        host = request.headers.get("host", "localhost:8000")
+        base_url = f"https://{host}"
+    queue_url = f"{base_url}/api/twilio/queue-handler"
+    response.redirect(queue_url, method="POST")
+    return Response(content=str(response), media_type="application/xml")
+
 
 @router.post("/status")
 async def handle_call_status(request: Request) -> Response:
     """Handle Twilio call status webhooks."""
     form = await request.form()
-    logger.info("Call status: sid=%s status=%s", form.get("CallSid"), form.get("CallStatus"))
+    call_sid = form.get("CallSid")
+    call_status = form.get("CallStatus")
+    logger.info("Call status: sid=%s status=%s", call_sid, call_status)
+
+    # If call ended (completed, failed, busy, no-answer), remove from queue if present
+    if call_status in ("completed", "failed", "busy", "no-answer", "canceled"):
+        # Try to find and remove from queue
+        to_number = form.get("To", "")
+        shop_config = await get_shop_config_by_phone(str(to_number))
+        if shop_config and shop_config.id:
+            from app.modules.voice.call_queue import remove_from_queue
+
+            remove_from_queue(str(shop_config.id), str(call_sid) if call_sid else "")
+
     return Response(content="OK", media_type="text/plain")
