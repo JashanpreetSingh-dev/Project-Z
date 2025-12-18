@@ -103,4 +103,6 @@ class UsageRecord(Document):
         ]
 
     def __str__(self) -> str:
-        return f"UsageRecord({self.shop_id}, calls={self.call_count}, minutes={self.minutes_used:.2f})"
+        return (
+            f"UsageRecord({self.shop_id}, calls={self.call_count}, minutes={self.minutes_used:.2f})"
+        )

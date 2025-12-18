@@ -217,9 +217,7 @@ async def get_current_usage(shop_id: str) -> UsageRecord:
     return usage
 
 
-async def increment_usage(
-    shop_id: str, duration_seconds: int, call_sid: str
-) -> UsageRecord:
+async def increment_usage(shop_id: str, duration_seconds: int, call_sid: str) -> UsageRecord:
     """Increment usage (minutes and call count) for current period.
 
     This function is idempotent - if the same call_sid is already logged,
@@ -237,9 +235,7 @@ async def increment_usage(
 
     # Check if this call_sid has already been counted (idempotency)
     if call_sid in usage.logged_call_sids:
-        logger.debug(
-            "Call %s already logged for shop %s, skipping increment", call_sid, shop_id
-        )
+        logger.debug("Call %s already logged for shop %s, skipping increment", call_sid, shop_id)
         return usage
 
     # Calculate minutes (round up to nearest minute, telephony standard)

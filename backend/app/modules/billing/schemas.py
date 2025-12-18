@@ -67,9 +67,7 @@ class QuotaStatus(BaseModel):
     calls_remaining: int | None = Field(
         default=None, description="Calls remaining (deprecated, use minutes_remaining)"
     )
-    minutes_remaining: int | None = Field(
-        ..., description="Minutes remaining (None for unlimited)"
-    )
+    minutes_remaining: int | None = Field(..., description="Minutes remaining (None for unlimited)")
     plan_tier: PlanTier
     upgrade_required: bool = Field(
         default=False,
